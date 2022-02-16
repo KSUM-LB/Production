@@ -1,0 +1,32 @@
+{
+  "name": "yallacyprus---backend",
+  "version": "1.0.0",
+  "description": "API for yalla cyprus",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app",
+    "dev": "nodemon app"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KSUM-LB/YallaCyprus-API.git"
+  },
+  "author": "K-SUM",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/KSUM-LB/YallaCyprus-API/issues"
+  },
+  "homepage": "https://github.com/KSUM-LB/YallaCyprus-API#readme",
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.0.0",
+    "express": "^4.17.2",
+    "fastest-validator": "^1.12.0",
+    "jsonwebtoken": "^8.5.1",
+    "mysql2": "^2.3.3",
+    "sequelize": "^6.16.1"
+  }
+}
