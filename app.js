@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require("express");
+const userRouter = require("./routes/user.router");
 
 // -- Initialize express app
 const app = express();
@@ -7,6 +8,9 @@ const app = express();
 // --- Middlewares
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// -- Route Middleware
+app.use("/user", userRouter);
 
 // --- Default route
 app.get("/", (req, res) => {
