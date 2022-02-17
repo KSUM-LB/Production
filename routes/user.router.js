@@ -10,6 +10,7 @@ router.post('/signup', userController.signup);
 router.post('/login', userController.login);
 // -- GetUserInfo
 // router.get('/getUserInfo', tokenAuth.verifyAndDecode, userController.getUserInfo);
+// -- Change password
 // -- Logout
 // router.delete('/logout', tokenAuth.verifyAndDecode, userController.logout);
 
