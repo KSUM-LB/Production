@@ -166,13 +166,13 @@ exports.changePassword = (req, res) => {
             { where: { email: req.userData.email } }
           )
             .then((result) => {
-                res.status(201).json({message: "Success"});
+              res.status(201).json({ message: "Success" });
             })
             .catch((err) => {
-                res.status(500).json({
-                    message: "Server Error",
-                    error: err,
-                  });
+              res.status(500).json({
+                message: "Server Error",
+                error: err,
+              });
             });
         } else {
           res.status(401).json({ message: "Old password is incorrect" });
