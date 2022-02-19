@@ -10,7 +10,7 @@ module.exports = {
       },
       type: {
         type: Sequelize.STRING,
-        allowNull: false
+        allowNull: false,
       },
       name: {
         type: Sequelize.STRING
@@ -24,8 +24,14 @@ module.exports = {
         allowNull: false,
       },
       booked: {
-        type: Sequelize.INTEGER,
-        defaultValue: 0
+        type: Sequelize.INTEGER
+      },
+      singlePrice: {
+        type: Sequelize.DOUBLE,
+        allowNull: false,
+      },
+      couplePrice: {
+        type: Sequelize.DOUBLE
       },
       createdAt: {
         allowNull: false,

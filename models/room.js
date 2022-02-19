@@ -18,7 +18,9 @@ module.exports = (sequelize, DataTypes) => {
     name: DataTypes.STRING,
     maxSize: DataTypes.INTEGER,
     quantity: DataTypes.INTEGER,
-    booked: DataTypes.INTEGER
+    booked: DataTypes.INTEGER,
+    singlePrice: DataTypes.DOUBLE,
+    couplePrice: DataTypes.DOUBLE
   }, {
     sequelize,
     modelName: 'Room',

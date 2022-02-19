@@ -161,19 +161,36 @@ exports.changePassword = (req, res) => {
             error: err,
           });
         } else if (result) {
-          models.User.update(
-            { password: req.body.newPassword },
-            { where: { email: req.userData.email } }
-          )
-            .then((result) => {
-              res.status(201).json({ message: "Success" });
-            })
-            .catch((err) => {
+          bcryptjs.genSalt(10, (err, salt) => {
+            if (err)
               res.status(500).json({
                 message: "Server Error",
                 error: err,
               });
-            });
+            else
+              bcryptjs.hash(req.body.newPassword, salt, (err, hash) => {
+                if (err)
+                  res.status(500).json({
+                    message: "Server Error",
+                    error: err,
+                  });
+                else {
+                  models.User.update(
+                    { password: hash },
+                    { where: { email: req.userData.email } }
+                  )
+                    .then((result) => {
+                      res.status(201).json({ message: "Success" });
+                    })
+                    .catch((err) => {
+                      res.status(500).json({
+                        message: "Server Error",
+                        error: err,
+                      });
+                    });
+                }
+              });
+          });
         } else {
           res.status(401).json({ message: "Old password is incorrect" });
         }
