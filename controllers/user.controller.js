@@ -29,7 +29,7 @@ exports.signup = (req, res) => {
                   fullName: req.body.fullName,
                   email: req.body.email,
                   password: hash,
-                  phoneNb: req.body.phoneNumber,
+                  phoneNb: req.body.phoneNb,
                 };
                 // -- Validating data passed in request body
                 const user_schema = {
@@ -116,7 +116,7 @@ exports.login = (req, res) => {
                           res.status(200).json({
                             message: "Logged in succesfully",
                             token: token,
-                            role: user.roleId
+                            role: user.roleId,
                           });
                         })
                         .catch((err) => {
@@ -149,8 +149,67 @@ exports.login = (req, res) => {
     });
 };
 
+// -- Change password
+exports.changePassword = (req, res) => {
+  const userEmail = req.userData.email;
+  models.User.findOne({ where: { email: userEmail } })
+    .then((user) => {
+      bcryptjs.compare(req.body.oldPassword, user.password, (err, result) => {
+        if (err) {
+          res.status(500).json({
+            message: "Server Error",
+            error: err,
+          });
+        } else if (result) {
+          models.User.update(
+            { password: req.body.newPassword },
+            { where: { email: req.userData.email } }
+          )
+            .then((result) => {
+                res.status(201).json({message: "Success"});
+            })
+            .catch((err) => {
+                res.status(500).json({
+                    message: "Server Error",
+                    error: err,
+                  });
+            });
+        } else {
+          res.status(401).json({ message: "Old password is incorrect" });
+        }
+      });
+    })
+    .catch((err) => {
+      res.status(500).json({
+        message: "Server Error",
+        error: err,
+      });
+    });
+};
+
 // -- Get User Info
 exports.getUserInfo = (req, res) => {};
 
 // -- Logout
-exports.logout = (req, res) => {};
+exports.logout = (req, res) => {
+  const jwtToken = req.headers.authorization.split(" ")[1];
+  // --- Delete token record from database
+  models.Token.destroy({ where: { token: jwtToken } })
+    .then((result) => {
+      if (result == null) {
+        res.status(401).json({
+          message: "Invalid or expired token",
+        });
+      } else {
+        res.status(200).json({
+          message: "Success",
+        });
+      }
+    })
+    .catch((error) => {
+      res.status(500).json({
+        message: "Server error!",
+        error,
+      });
+    });
+};
