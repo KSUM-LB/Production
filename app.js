@@ -4,6 +4,7 @@ const userRouter = require("./routes/user.router");
 const couponRouter = require("./routes/coupon.router");
 const roomRouter = require("./routes/room.router");
 const tableRouter = require("./routes/table.router");
+// const travellerRouter = require("./routes/traveller.router");
 
 // -- Initialize express app
 const app = express();
@@ -17,6 +18,7 @@ app.use("/user", userRouter);
 app.use("/coupon", couponRouter);
 app.use("/room", roomRouter);
 app.use("/table", tableRouter);
+// app.use("/traveller", travellerRouter);
 
 // --- Default route
 app.get("/", (req, res) => {
