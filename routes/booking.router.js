@@ -1,14 +1,17 @@
 const express = require('express');
-const travellerController = require('../controllers/traveller.controller');
-const tokenAuth = require('./../middlewares/tokenVerify');
-const auth = require('./../middlewares/authorization');
+const bookingController = require('../controllers/booking.controller');
+const tokenAuth = require('../middlewares/tokenVerify');
+const auth = require('../middlewares/authorization');
 
 const router = express.Router();
 
-// -- Create Traveller
-router.post('/create', tokenAuth.verifyAndDecode, travellerController.createTraveller);
-// -- Get Rooms
+// -- Create Booking
+router.post('/create', tokenAuth.verifyAndDecode, bookingController.createBooking);
+// -- Get Bookings (admin)
 // router.get('/', tokenAuth.verifyAndDecode, roomController.getRooms);
+// -- Get Single Booking
+// router.get('/', tokenAuth.verifyAndDecode, roomController.getRooms);
+
 // -- Edit Rooms  (super admin)
 // router.patch('/edit', tokenAuth.verifyAndDecode, auth.checkSuperAdminAccess, couponController.createCoupon);
 // -- Edit Room Quantity
