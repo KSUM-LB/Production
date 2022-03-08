@@ -49,10 +49,19 @@ exports.signup = (req, res) => {
                   // -- Add new user to database
                   models.User.create(user)
                     .then((result) => {
-                      res.status(201).json({
-                        message: "User created successfully",
-                        user: result,
-                      });
+                      models.Referal.create({"referal": req.body.referal})
+                        .then(
+                          res.status(201).json({
+                            message: "User created successfully",
+                            user: result,
+                          })
+                        )
+                        .catch((err) =>
+                          res.status(500).json({
+                            message: "Server Error",
+                            error: err,
+                          })
+                        );
                     })
                     .catch((err) => {
                       res.status(500).json({
