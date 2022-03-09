@@ -20,11 +20,8 @@ module.exports = {
       CC: {
         type: Sequelize.BOOLEAN
       },
-      UserId: {
+      userId: {
         type: Sequelize.INTEGER
-      },
-      referal: {
-        type: Sequelize.STRING
       },
       QrCode: {
         type: Sequelize.TEXT
