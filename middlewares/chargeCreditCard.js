@@ -3,13 +3,12 @@
 var ApiContracts = require('authorizenet').APIContracts;
 var ApiControllers = require('authorizenet').APIControllers;
 var SDKConstants = require('authorizenet').Constants;
-var utils = require('../utils.js');
-var constants = require('../constants.js');
+// var utils = require('../utils.js');
 
 function chargeCreditCard(callback) {
 	var merchantAuthenticationType = new ApiContracts.MerchantAuthenticationType();
-	merchantAuthenticationType.setName(constants.apiLoginKey);
-	merchantAuthenticationType.setTransactionKey(constants.transactionKey);
+	merchantAuthenticationType.setName(process.env.APILOGINKEY);
+	merchantAuthenticationType.setTransactionKey(process.env.TRANSACTIONKEY);
 
 	var creditCard = new ApiContracts.CreditCardType();
 	creditCard.setCardNumber('4242424242424242');
@@ -33,10 +32,10 @@ function chargeCreditCard(callback) {
 	duty.setName('duty name');
 	duty.setDescription('duty description');
 
-	var shipping = new ApiContracts.ExtendedAmountType();
-	shipping.setAmount('8.55');
-	shipping.setName('shipping name');
-	shipping.setDescription('shipping description');
+	// var shipping = new ApiContracts.ExtendedAmountType();
+	// shipping.setAmount('8.55');
+	// shipping.setName('shipping name');
+	// shipping.setDescription('shipping description');
 
 	var billTo = new ApiContracts.CustomerAddressType();
 	billTo.setFirstName('Ellen');
@@ -48,15 +47,15 @@ function chargeCreditCard(callback) {
 	billTo.setZip('44628');
 	billTo.setCountry('USA');
 
-	var shipTo = new ApiContracts.CustomerAddressType();
-	shipTo.setFirstName('China');
-	shipTo.setLastName('Bayles');
-	shipTo.setCompany('Thyme for Tea');
-	shipTo.setAddress('12 Main Street');
-	shipTo.setCity('Pecan Springs');
-	shipTo.setState('TX');
-	shipTo.setZip('44628');
-	shipTo.setCountry('USA');
+	// var shipTo = new ApiContracts.CustomerAddressType();
+	// shipTo.setFirstName('China');
+	// shipTo.setLastName('Bayles');
+	// shipTo.setCompany('Thyme for Tea');
+	// shipTo.setAddress('12 Main Street');
+	// shipTo.setCity('Pecan Springs');
+	// shipTo.setState('TX');
+	// shipTo.setZip('44628');
+	// shipTo.setCountry('USA');
 
 	var lineItem_id1 = new ApiContracts.LineItemType();
 	lineItem_id1.setItemId('1');
@@ -112,7 +111,8 @@ function chargeCreditCard(callback) {
 	var transactionRequestType = new ApiContracts.TransactionRequestType();
 	transactionRequestType.setTransactionType(ApiContracts.TransactionTypeEnum.AUTHCAPTURETRANSACTION);
 	transactionRequestType.setPayment(paymentType);
-	transactionRequestType.setAmount(utils.getRandomAmount());
+	// transactionRequestType.setAmount(utils.getRandomAmount());
+	transactionRequestType.setAmount(12);
 	transactionRequestType.setLineItems(lineItems);
 	transactionRequestType.setUserFields(userFields);
 	transactionRequestType.setOrder(orderDetails);
