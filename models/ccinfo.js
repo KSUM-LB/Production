@@ -19,7 +19,8 @@ module.exports = (sequelize, DataTypes) => {
     bookingId: DataTypes.INTEGER,
     cardNumber: DataTypes.STRING,
     expirationDate: DataTypes.STRING,
-    cardCode: DataTypes.STRING
+    cardCode: DataTypes.STRING,
+    cardHolder: DataTypes.STRING
   }, {
     sequelize,
     modelName: 'CCinfo',
