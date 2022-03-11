@@ -62,7 +62,7 @@ exports.createBooking = async (req, res) => {
             bookingId: bookingDB.id,
             nbOfPeople: req.body.tables[i].nbOfPeople,
           };
-          // -- Validating data passed in request body for room
+          // -- Validating data passed in request body for table
           const table_schema = {
             tableId: { type: "number", optional: false },
             bookingId: { type: "number", optional: false },
@@ -142,9 +142,9 @@ exports.createBooking = async (req, res) => {
             });
           }
         }
-        // -- Responding with all data
-        res.status(200).json({ message: "success"});
       });
+      // -- Responding with all data
+      res.status(200).json({ message: "success", result});
     } catch (error) {
       res.status(500).json({
         message: "Server Error",
