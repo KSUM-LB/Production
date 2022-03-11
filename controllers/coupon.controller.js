@@ -46,7 +46,23 @@ exports.createCoupon = (req, res) => {
 // -- Get Coupons
 exports.getCoupons = (req, res) => {
   models.Coupon.findAll({where: {status: 1}})
-    .then((result) => res.send(result))
+    .then((result) => {
+      for(i=0;i<result.length;i++){
+        if(result[i].status === true){
+          console.log("------------------------");
+          let d1 = new Date();
+          let d2 = new Date(result[i].expDate);
+          console.log("id: " + result[i].id);
+          console.log(d1);
+          console.log(d2);
+          if(d1.getDay() == d2.getDay() && d1.getMonth() == d2.getMonth() && d1.getFullYear() == d2.getFullYear()){
+            models.Coupon.update({status: false}, { where: { id: result[i].id }});
+            result.splice(i, 1);
+          }
+        }
+      }
+      res.status(200).json({message: "success",result})
+    })
     .catch((err) =>
       res.status(500).json({
         message: "Server Error",

@@ -1,6 +1,7 @@
 const Validator = require("fastest-validator");
 const { sequelize } = require("../models");
 const models = require("../models");
+const QRCode = require("qrcode");
 
 // -- Create Booking
 exports.createBooking = async (req, res) => {
@@ -54,6 +55,26 @@ exports.createBooking = async (req, res) => {
         const bookingDB = await models.Bookings.create(booking, {
           transaction: t,
         });
+        // -- Creating QR Code
+        // const data = {
+        //   bookingId: bookingDB.bookingId,
+        //   userId: req.userData.userId,
+        // };
+        // const stringdata = JSON.stringify(data);
+        // QRCode.toString(
+        //   stringdata,
+        //   { type: "terminal" },
+        //   function (err, QRcode) {
+        //     if (err)
+        //       console.log("------------------ error occurred ----------------");
+        //     console.log(QRcode);
+        //   }
+        // );
+        // QRCode.toDataURL(stringdata, function (err, code) {
+        //   if (err)
+        //     console.log("------------------ error occurred ----------------");
+        //   console.log(code);
+        // });
         // -- Looping over tables
         for (var i = 0; i < bookingDB.nbOfTables; i++) {
           // -- Getting table info
@@ -185,7 +206,7 @@ exports.createBooking = async (req, res) => {
         }
       });
       // -- Responding with all data
-      res.status(200).json({ message: "success", result });
+      res.status(201).json({ message: "success", result });
     } catch (error) {
       res.status(500).json({
         message: "Server Error",
