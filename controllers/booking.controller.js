@@ -39,11 +39,11 @@ exports.createBooking = async (req, res) => {
     couponId: { type: "number", optional: true },
     total: { type: "number", optional: false },
   };
-  const v = new Validator();
-  const bookingValidation = v.validate(booking, booking_schema);
+  const vBooking = new Validator();
+  const bookingValidation = vBooking.validate(booking, booking_schema);
   if (bookingValidation != true) {
     return res.status(406).json({
-      message: "Error in Data format",
+      message: "Error in booking data",
       error: bookingValidation,
     });
   } else {
@@ -54,43 +54,73 @@ exports.createBooking = async (req, res) => {
         const bookingDB = await models.Bookings.create(booking, {
           transaction: t,
         });
-        // -- Getting ccinfo
-        const ccinfo = {
-          bookingId: bookingDB.id,
-          cardNumber: req.body.ccinfo.cardNumber,
-          expirationDate: req.body.ccinfo.expirationDate,
-          cardCode: req.body.ccinfo.cardCode,
-          cardHolder: req.body.ccinfo.cardHolder,
-        };
-        // -- Validating data passed in request body for ccinfo
-        const ccinfo_schema = {
-          bookingId: { type: "number", optional: false },
-          cardNumber: { type: "string", optional: false },
-          expirationDate: { type: "string", optional: false },
-          cardCode: { type: "number", optional: false },
-          cardHolder: { type: "string", optional: false },
-        };
-        const v1 = new Validator();
-        const ccinfoalidation = v1.validate(ccinfo, ccinfo_schema);
-        if (ccinfoalidation != true) {
-          t.rollback();
-          return res.status(406).json({
-            message: "Error in Data format",
-            error: ccinfoalidation,
-          });
-        } else {
-          // -- Inserting CCinfo
-          const CCinfoDB = await models.CCinfo.create(ccinfo, {
-            transaction: t,
-          });
-
-          res.status(200).json({ message: "success", bookingDB, CCinfoDB });
+        // -- Looping over rooms
+        for (var i = 0; i < bookingDB.nbOfRooms; i++) {
+          // -- Getting room info
+          const room = {
+            roomId: req.body.rooms[i].roomId,
+            bookingId: bookingDB.id,
+            nbOfPeople: req.body.rooms[i].nbOfPeople,
+          };
+          // -- Validating data passed in request body for room
+          const room_schema = {
+            roomId: { type: "number", optional: false },
+            bookingId: { type: "number", optional: false },
+            nbOfPeople: { type: "number", optional: false },
+          };
+          const vRoom = new Validator();
+          const roomValidation = vRoom.validate(room, room_schema);
+          if (roomValidation != true) {
+            t.rollback();
+            return res.status(406).json({
+              message: "Error in room data",
+              error: roomValidation,
+            });
+          } else {
+            const roomDB = await models.RoomBooking.create(room, {
+              transaction: t,
+            });
+          }
         }
+        if (bookingDB.CC) {
+          // -- Getting ccinfo
+          const ccinfo = {
+            bookingId: bookingDB.id,
+            cardNumber: req.body.ccinfo.cardNumber,
+            expirationDate: req.body.ccinfo.expirationDate,
+            cardCode: req.body.ccinfo.cardCode,
+            cardHolder: req.body.ccinfo.cardHolder,
+          };
+          // -- Validating data passed in request body for ccinfo
+          const ccinfo_schema = {
+            bookingId: { type: "number", optional: false },
+            cardNumber: { type: "string", optional: false },
+            expirationDate: { type: "string", optional: false },
+            cardCode: { type: "number", optional: false },
+            cardHolder: { type: "string", optional: false },
+          };
+          const vRoom = new Validator();
+          const ccinfovalidation = vRoom.validate(ccinfo, ccinfo_schema);
+          if (ccinfovalidation != true) {
+            t.rollback();
+            return res.status(406).json({
+              message: "Error in credit card data",
+              error: ccinfovalidation,
+            });
+          } else {
+            // -- Inserting CCinfo
+            const CCinfoDB = await models.CCinfo.create(ccinfo, {
+              transaction: t,
+            });
+          }
+        }
+        // -- Responding with all data
+        res.status(200).json({ message: "success"});
       });
     } catch (error) {
       res.status(500).json({
         message: "Server Error",
-        error: err,
+        error: error,
       });
     }
   }
