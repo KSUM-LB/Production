@@ -54,6 +54,34 @@ exports.createBooking = async (req, res) => {
         const bookingDB = await models.Bookings.create(booking, {
           transaction: t,
         });
+        // -- Looping over tables
+        for (var i = 0; i < bookingDB.nbOfTables; i++) {
+          // -- Getting table info
+          const table = {
+            tableId: req.body.tables[i].tableId,
+            bookingId: bookingDB.id,
+            nbOfPeople: req.body.tables[i].nbOfPeople,
+          };
+          // -- Validating data passed in request body for room
+          const table_schema = {
+            tableId: { type: "number", optional: false },
+            bookingId: { type: "number", optional: false },
+            nbOfPeople: { type: "number", optional:  false },
+          };
+          const vtable = new Validator();
+          const tableValidation = vtable.validate(table, table_schema);
+          if (tableValidation != true) {
+            t.rollback();
+            return res.status(406).json({
+              message: "Error in table data",
+              error: tableValidation,
+            });
+          } else {
+            const tableDB = await models.TableBooking.create(table, {
+              transaction: t,
+            });
+          }
+        }
         // -- Looping over rooms
         for (var i = 0; i < bookingDB.nbOfRooms; i++) {
           // -- Getting room info
