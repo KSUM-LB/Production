@@ -131,6 +131,42 @@ exports.createBooking = async (req, res) => {
             });
           }
         }
+        // -- Looping over travellers
+        console.log("---------------------------------------");
+        for (var i = 0; i < bookingDB.nbOfTravellers; i++) {
+          console.log("1111111111111111111111");
+          // -- Getting traveller info
+          const dobDate = req.body.travellers[i].dob.split("-");
+          const traveller = {
+            bookingId: bookingDB.id,
+            fullname: req.body.travellers[i].fullname,
+            dob: new Date(dobDate[0], dobDate[1] - 1, dobDate[2]),
+            nationality: req.body.travellers[i].nationality,
+          };
+          // -- Validating data passed in request body for traveller
+          const traveller_schema = {
+            bookingId: { type: "number", optional: false },
+            fullname: { type: "string", optional: false },
+            dob: { type: "date", optional: false },
+            nationality: { type: "string", optional: false },
+          };
+          const vTraveller = new Validator();
+          const travellerValidation = vTraveller.validate(
+            traveller,
+            traveller_schema
+          );
+          if (travellerValidation != true) {
+            t.rollback();
+            return res.status(406).json({
+              message: "Error in traveller data",
+              error: travellerValidation,
+            });
+          } else {
+            const travellerDB = await models.Traveller.create(traveller, {
+              transaction: t,
+            });
+          }
+        }
         if (bookingDB.CC) {
           // -- Getting ccinfo
           const ccinfo = {
