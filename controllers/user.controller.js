@@ -41,7 +41,7 @@ exports.signup = (req, res) => {
                 const v = new Validator();
                 const validationResponse = v.validate(user, user_schema);
                 if (validationResponse != true) {
-                  return res.status(406).json({
+                  res.status(406).json({
                     message: "Error in Data format",
                     error: validationResponse,
                   });
@@ -49,7 +49,7 @@ exports.signup = (req, res) => {
                   // -- Add new user to database
                   models.User.create(user)
                     .then((result) => {
-                      models.Referal.create({"referal": req.body.referal})
+                      models.Referal.create({ referal: req.body.referal })
                         .then(
                           res.status(201).json({
                             message: "User created successfully",

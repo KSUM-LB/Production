@@ -206,9 +206,9 @@ exports.createBooking = async (req, res) => {
         }
       });
       // -- Responding with all data
-      res.status(201).json({ message: "success", result });
+      return res.status(201).json({ message: "success", result });
     } catch (error) {
-      res.status(500).json({
+      return res.status(500).json({
         message: "Server Error",
         error: error,
       });

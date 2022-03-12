@@ -21,7 +21,7 @@ exports.createCoupon = (req, res) => {
   const v = new Validator();
   const validationResponse = v.validate(coupon, coupon_schema);
   if (validationResponse != true) {
-    return res.status(406).json({
+    res.status(406).json({
       message: "Error in Data format",
       error: validationResponse,
     });
@@ -49,12 +49,8 @@ exports.getCoupons = (req, res) => {
     .then((result) => {
       for(i=0;i<result.length;i++){
         if(result[i].status === true){
-          console.log("------------------------");
           let d1 = new Date();
           let d2 = new Date(result[i].expDate);
-          console.log("id: " + result[i].id);
-          console.log(d1);
-          console.log(d2);
           if(d1.getDay() == d2.getDay() && d1.getMonth() == d2.getMonth() && d1.getFullYear() == d2.getFullYear()){
             models.Coupon.update({status: false}, { where: { id: result[i].id }});
             result.splice(i, 1);

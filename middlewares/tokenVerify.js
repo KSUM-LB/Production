@@ -10,20 +10,19 @@ exports.verifyAndDecode = (req, res, next) => {
       .then((result) => {
         if (result == null) {
           return res.status(401).json({
-            message: "Invalid or expired token",
-            error: err,
+            message: "Invalid or expired token"
           });
         } else {
+          req.userData = decodedToken;
           next();
         }
       })
       .catch((err) => {
-        res.status(500).json({
+        return res.status(500).json({
           message: "Server error!",
           error: err,
         });
       });
-    req.userData = decodedToken;
   } catch (err) {
     return res.status(401).json({
       message: "Invalid or expired token",
