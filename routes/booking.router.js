@@ -7,8 +7,8 @@ const router = express.Router();
 
 // -- Create Booking
 router.post('/create', tokenAuth.verifyAndDecode, bookingController.createBooking);
-// -- Get Bookings (admin)
-// router.get('/', tokenAuth.verifyAndDecode, roomController.getRooms);
+// -- Get Bookings
+router.get('/', tokenAuth.verifyAndDecode, bookingController.getBooking);
 // -- Get Single Booking
 // router.get('/', tokenAuth.verifyAndDecode, roomController.getRooms);
 
