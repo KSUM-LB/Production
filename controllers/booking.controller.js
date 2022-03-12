@@ -257,42 +257,56 @@ exports.getBooking = (req, res) => {
   // -- Get booking info
   models.Bookings.findOne({ where: { userId: req.userData.userId } })
     .then((booking) => {
-      if (booking != null) {
-        // -- Get room info
-        models.RoomBooking.findAll({ where: { bookingId: booking.id } })
-          .then((rooms) => {
-            booking["dataValues"]["rooms"] = rooms;
-            // -- Get table info
-            models.TableBooking.findAll({ where: { bookingId: booking.id } })
-              .then((tables) => {
-                booking["dataValues"]["tables"] = tables;
-                // -- Get traveller info
-                models.Traveller.findAll({ where: { bookingId: booking.id } })
-                  .then((travellers) => {
-                    booking["dataValues"]["travellers"] = travellers;
-                    // -- Get flight info
-                    models.FlightInfo.findAll({
-                      where: { bookingId: booking.id },
-                    })
-                      .then((flightinfo) => {
-                        booking["dataValues"]["flightinfo"] = flightinfo;
-                        res.status(200).json({ message: "success", booking });
-                      })
-                      .catch((error) =>
-                        res.status(500).json({ message: "Server Error", error })
-                      );
-                  })
-                  .catch((error) =>
-                    res.status(500).json({ message: "Server Error", error })
-                  );
-              })
-              .catch((error) =>
-                res.status(500).json({ message: "Server Error", error })
-              );
-          })
-          .catch((error) =>
-            res.status(500).json({ message: "Server Error", error })
+      if (booking != null && booking.status) {
+        let d1 = new Date();
+        let d2 = new Date(booking.createdAt);
+        if (d1.getDay() - d2.getDay() >= 2) {
+          models.Bookings.update(
+            { status: false },
+            { where: { id: booking.id } }
           );
+          res.status(200).json({ message: "Booking expired" });
+        } else {
+          // -- Get room info
+          models.RoomBooking.findAll({ where: { bookingId: booking.id } })
+            .then((rooms) => {
+              booking["dataValues"]["rooms"] = rooms;
+              // -- Get table info
+              models.TableBooking.findAll({ where: { bookingId: booking.id } })
+                .then((tables) => {
+                  booking["dataValues"]["tables"] = tables;
+                  // -- Get traveller info
+                  models.Traveller.findAll({ where: { bookingId: booking.id } })
+                    .then((travellers) => {
+                      booking["dataValues"]["travellers"] = travellers;
+                      // -- Get flight info
+                      models.FlightInfo.findAll({
+                        where: { bookingId: booking.id },
+                      })
+                        .then((flightinfo) => {
+                          booking["dataValues"]["flightinfo"] = flightinfo;
+                          res.status(200).json({ message: "success", booking });
+                        })
+                        .catch((error) =>
+                          res
+                            .status(500)
+                            .json({ message: "Server Error", error })
+                        );
+                    })
+                    .catch((error) =>
+                      res.status(500).json({ message: "Server Error", error })
+                    );
+                })
+                .catch((error) =>
+                  res.status(500).json({ message: "Server Error", error })
+                );
+            })
+            .catch((error) =>
+              res.status(500).json({ message: "Server Error", error })
+            );
+        }
+      } else if (!booking.status) {
+        res.status(200).json({ message: "Booking expired" });
       } else {
         res.status(200).json({ message: "No booking" });
       }
