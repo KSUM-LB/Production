@@ -2,6 +2,7 @@ const Validator = require("fastest-validator");
 const { sequelize } = require("../models");
 const models = require("../models");
 const QRCode = require("qrcode");
+const { chargeCreditCard } = require("../middlewares/chargeCreditCard");
 
 // -- Create Booking
 exports.createBooking = async (req, res) => {
@@ -132,9 +133,7 @@ exports.createBooking = async (req, res) => {
           }
         }
         // -- Looping over travellers
-        console.log("---------------------------------------");
         for (var i = 0; i < bookingDB.nbOfTravellers; i++) {
-          console.log("1111111111111111111111");
           // -- Getting traveller info
           const dobDate = req.body.travellers[i].dob.split("-");
           const traveller = {
@@ -163,38 +162,6 @@ exports.createBooking = async (req, res) => {
             });
           } else {
             const travellerDB = await models.Traveller.create(traveller, {
-              transaction: t,
-            });
-          }
-        }
-        if (bookingDB.CC) {
-          // -- Getting ccinfo
-          const ccinfo = {
-            bookingId: bookingDB.id,
-            cardNumber: req.body.ccinfo.cardNumber,
-            expirationDate: req.body.ccinfo.expirationDate,
-            cardCode: req.body.ccinfo.cardCode,
-            cardHolder: req.body.ccinfo.cardHolder,
-          };
-          // -- Validating data passed in request body for ccinfo
-          const ccinfo_schema = {
-            bookingId: { type: "number", optional: false },
-            cardNumber: { type: "string", optional: false },
-            expirationDate: { type: "string", optional: false },
-            cardCode: { type: "number", optional: false },
-            cardHolder: { type: "string", optional: false },
-          };
-          const vCCinfo = new Validator();
-          const ccinfovalidation = vCCinfo.validate(ccinfo, ccinfo_schema);
-          if (ccinfovalidation != true) {
-            t.rollback();
-            return res.status(406).json({
-              message: "Error in credit card data",
-              error: ccinfovalidation,
-            });
-          } else {
-            // -- Inserting CCinfo
-            const CCinfoDB = await models.CCinfo.create(ccinfo, {
               transaction: t,
             });
           }
@@ -239,6 +206,54 @@ exports.createBooking = async (req, res) => {
           const flightinfoDB = await models.FlightInfo.create(flightinfo, {
             transaction: t,
           });
+        }
+        // -- If CCinfo available
+        if (bookingDB.CC) {
+          // -- Getting ccinfo
+          const ccinfo = {
+            bookingId: bookingDB.id,
+            cardNumber: req.body.ccinfo.cardNumber,
+            expirationDate: req.body.ccinfo.expirationDate,
+            cardCode: req.body.ccinfo.cardCode,
+            cardHolder: req.body.ccinfo.cardHolder,
+          };
+          // -- Validating data passed in request body for ccinfo
+          const ccinfo_schema = {
+            bookingId: { type: "number", optional: false },
+            cardNumber: { type: "string", optional: false },
+            expirationDate: { type: "string", optional: false },
+            cardCode: { type: "number", optional: false },
+            cardHolder: { type: "string", optional: false },
+          };
+          const vCCinfo = new Validator();
+          const ccinfovalidation = vCCinfo.validate(ccinfo, ccinfo_schema);
+          if (ccinfovalidation != true) {
+            t.rollback();
+            return res.status(406).json({
+              message: "Error in credit card data",
+              error: ccinfovalidation,
+            });
+          } else {
+            // -- Inserting CCinfo
+            const CCinfoDB = await models.CCinfo.create(ccinfo, {
+              transaction: t,
+            });
+            if (bookingDB.payed) {
+              try {
+                const callback = (response) => {
+                  console.log("-----------------------------------------");
+                  console.log(response);
+                  console.log("-----------------------------------------");
+                };
+                chargeCreditCard(callback, CCinfoDB, bookingDB);
+              } catch (error) {
+                t.rollback();
+                console.log("##################################");
+                console.log(error);
+                console.log("##################################");
+              }
+            }
+          }
         }
       });
       // -- Responding with all data
