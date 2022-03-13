@@ -241,16 +241,13 @@ exports.createBooking = async (req, res) => {
             if (bookingDB.payed) {
               try {
                 const callback = (response) => {
-                  console.log("-----------------------------------------");
-                  console.log(response);
-                  console.log("-----------------------------------------");
+                  if(response == null){
+                    t.rollback();
+                  }
                 };
                 chargeCreditCard(callback, CCinfoDB, bookingDB);
               } catch (error) {
                 t.rollback();
-                console.log("##################################");
-                console.log(error);
-                console.log("##################################");
               }
             }
           }

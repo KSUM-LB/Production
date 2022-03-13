@@ -155,6 +155,7 @@ function chargeCreditCard(callback, ccinfo, booking) {
 					console.log('Description: ' + response.getTransactionResponse().getMessages().getMessage()[0].getDescription());
 				}
 				else {
+					response = null;
 					console.log('Failed Transaction.');
 					if(response.getTransactionResponse().getErrors() != null){
 						console.log('Error Code: ' + response.getTransactionResponse().getErrors().getError()[0].getErrorCode());
@@ -163,6 +164,7 @@ function chargeCreditCard(callback, ccinfo, booking) {
 				}
 			}
 			else {
+				response = null;
 				console.log('Failed Transaction. ');
 				if(response.getTransactionResponse() != null && response.getTransactionResponse().getErrors() != null){
 				
