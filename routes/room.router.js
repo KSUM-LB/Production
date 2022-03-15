@@ -8,7 +8,7 @@ const router = express.Router();
 // -- Create Room (super admin)
 router.post('/create', tokenAuth.verifyAndDecode, auth.checkSuperAdminAccess, roomController.createRoom);
 // -- Get Rooms
-router.get('/', tokenAuth.verifyAndDecode, roomController.getRooms);
+router.get('/', roomController.getRooms);
 // -- Edit Rooms  (super admin)
 // router.patch('/edit', tokenAuth.verifyAndDecode, auth.checkSuperAdminAccess, couponController.createCoupon);
 // -- Edit Room Quantity

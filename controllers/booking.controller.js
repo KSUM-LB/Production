@@ -19,8 +19,8 @@ exports.createBooking = async (req, res) => {
     nbOfTravellers: req.body.nbOfTravellers,
     nbOfRooms: req.body.nbOfRooms,
     nbOfTables: req.body.nbOfTables,
-    checkIn: new Date(inDate[0], inDate[1] - 1, inDate[2]),
-    checkOut: new Date(outDate[0], outDate[1] - 1, outDate[2]),
+    checkIn: new Date(inDate[0], inDate[2], inDate[1] - 1),
+    checkOut: new Date(outDate[0], outDate[2], outDate[1] - 1),
     price: req.body.price,
     couponId: req.body.couponId,
     total: req.body.total,
@@ -102,6 +102,10 @@ exports.createBooking = async (req, res) => {
             const tableDB = await models.TableBooking.create(table, {
               transaction: t,
             });
+            models.Table.increment("booked", {
+              by: 1,
+              where: { id: table.tableId },
+            }).catch((err) => t.rollback());
           }
         }
         // -- Looping over rooms
@@ -130,6 +134,10 @@ exports.createBooking = async (req, res) => {
             const roomDB = await models.RoomBooking.create(room, {
               transaction: t,
             });
+            models.Room.increment("booked", {
+              by: 1,
+              where: { id: room.roomId },
+            }).catch((err) => t.rollback());
           }
         }
         // -- Looping over travellers
@@ -166,46 +174,48 @@ exports.createBooking = async (req, res) => {
             });
           }
         }
-        // -- Getting flight info
-        const arrDate = req.body.flightinfo.arrivalDate.split("-");
-        const depDate = req.body.flightinfo.departureDate.split("-");
-        const flightinfo = {
-          bookingId: bookingDB.id,
-          arrivalAirline: req.body.flightinfo.arrivalAirline,
-          arrivalFNb: req.body.flightinfo.arrivalFNb,
-          arrivalDate: new Date(arrDate[0], arrDate[1] - 1, arrDate[2]),
-          departureAirline: req.body.flightinfo.departureAirline,
-          departureFNb: req.body.flightinfo.departureFNb,
-          departureDate: new Date(depDate[0], depDate[1] - 1, depDate[2]),
-          travellers: bookingDB.nbOfTravellers,
-        };
-        // -- Validating data passed in request body for flight info
-        const flightinfo_schema = {
-          bookingId: { type: "number", optional: false },
-          arrivalAirline: { type: "string", optional: false },
-          arrivalFNb: { type: "string", optional: false },
-          arrivalDate: { type: "date", optional: false },
-          departureAirline: { type: "string", optional: false },
-          departureFNb: { type: "string", optional: false },
-          departureDate: { type: "date", optional: false },
-          travellers: { type: "number", optional: false },
-        };
-        const vflightInfo = new Validator();
-        const flightinfovalidation = vflightInfo.validate(
-          flightinfo,
-          flightinfo_schema
-        );
-        if (flightinfovalidation != true) {
-          t.rollback();
-          return res.status(406).json({
-            message: "Error in flight info data",
-            error: flightinfovalidation,
-          });
-        } else {
-          // -- Inserting flightinfo
-          const flightinfoDB = await models.FlightInfo.create(flightinfo, {
-            transaction: t,
-          });
+        for (var i = 0; i < req.body.flightinfo.length(); i++) {
+          // -- Getting flight info
+          const arrDate = req.body.flightinfo[i].arrivalDate.split("-");
+          const depDate = req.body.flightinfo[i].departureDate.split("-");
+          const flightinfo = {
+            bookingId: bookingDB.id,
+            arrivalAirline: req.body.flightinfo[i].arrivalAirline,
+            arrivalFNb: req.body.flightinfo[i].arrivalFNb,
+            arrivalDate: new Date(arrDate[0], arrDate[1] - 1, arrDate[2]),
+            departureAirline: req.body.flightinfo[i].departureAirline,
+            departureFNb: req.body.flightinfo[i].departureFNb,
+            departureDate: new Date(depDate[0], depDate[1] - 1, depDate[2]),
+            travellers: req.body.flightinfo[i].travellers,
+          };
+          // -- Validating data passed in request body for flight info
+          const flightinfo_schema = {
+            bookingId: { type: "number", optional: false },
+            arrivalAirline: { type: "string", optional: false },
+            arrivalFNb: { type: "string", optional: false },
+            arrivalDate: { type: "date", optional: false },
+            departureAirline: { type: "string", optional: false },
+            departureFNb: { type: "string", optional: false },
+            departureDate: { type: "date", optional: false },
+            travellers: { type: "number", optional: false },
+          };
+          const vflightInfo = new Validator();
+          const flightinfovalidation = vflightInfo.validate(
+            flightinfo,
+            flightinfo_schema
+          );
+          if (flightinfovalidation != true) {
+            t.rollback();
+            return res.status(406).json({
+              message: "Error in flight info data",
+              error: flightinfovalidation,
+            });
+          } else {
+            // -- Inserting flightinfo
+            const flightinfoDB = await models.FlightInfo.create(flightinfo, {
+              transaction: t,
+            });
+          }
         }
         // -- If CCinfo available
         if (bookingDB.CC) {
@@ -241,7 +251,7 @@ exports.createBooking = async (req, res) => {
             if (bookingDB.payed) {
               try {
                 const callback = (response) => {
-                  if(response == null){
+                  if (response == null) {
                     t.rollback();
                   }
                 };
@@ -257,7 +267,7 @@ exports.createBooking = async (req, res) => {
       return res.status(201).json({ message: "success", result });
     } catch (error) {
       return res.status(500).json({
-        message: "Server Error",
+        message: "Server Error 123",
         error: error,
       });
     }

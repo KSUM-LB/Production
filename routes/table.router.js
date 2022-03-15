@@ -8,7 +8,7 @@ const router = express.Router();
 // -- Create Table (super admin)
 router.post('/create', tokenAuth.verifyAndDecode, auth.checkSuperAdminAccess, tableController.createTable);
 // -- Get Tables
-router.get('/', tokenAuth.verifyAndDecode, tableController.getTables);
+router.get('/', tableController.getTables);
 // -- Edit Rooms  (super admin)
 // router.patch('/edit', tokenAuth.verifyAndDecode, auth.checkSuperAdminAccess, couponController.createCoupon);
 // -- Edit Table Size

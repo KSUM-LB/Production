@@ -8,7 +8,7 @@ const router = express.Router();
 // -- Create Coupon
 router.post('/create', tokenAuth.verifyAndDecode, auth.checkAdminAccess, couponController.createCoupon);
 // -- Get Coupons
-router.get('/', tokenAuth.verifyAndDecode, auth.checkAdminAccess, couponController.getCoupons);
+router.get('/', couponController.getCoupons);
 // -- Delete Coupon
 router.patch('/delete/:id', tokenAuth.verifyAndDecode, auth.checkAdminAccess, couponController.deleteCoupon);
 
