@@ -103,7 +103,7 @@ exports.createBooking = async (req, res) => {
               transaction: t,
             });
             models.Table.increment("booked", {
-              by: 1,
+              by: table.nbOfPeople,
               where: { id: table.tableId },
             }).catch((err) => t.rollback());
           }
@@ -174,7 +174,8 @@ exports.createBooking = async (req, res) => {
             });
           }
         }
-        for (var i = 0; i < req.body.flightinfo.length(); i++) {
+        // -- Looping over flight info
+        for (var i = 0; i < req.body.flightinfo.length; i++) {
           // -- Getting flight info
           const arrDate = req.body.flightinfo[i].arrivalDate.split("-");
           const depDate = req.body.flightinfo[i].departureDate.split("-");
