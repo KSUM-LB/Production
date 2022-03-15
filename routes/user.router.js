@@ -9,7 +9,7 @@ router.post('/signup', userController.signup);
 // -- Login
 router.post('/login', userController.login);
 // -- Change password
-router.patch('/changePassword', tokenAuth.verifyAndDecode, userController.changePassword)
+router.patch('/changePassword', tokenAuth.verifyAndDecode, userController.changePassword);
 // -- Logout
 router.delete('/logout', tokenAuth.verifyAndDecode, userController.logout);
 

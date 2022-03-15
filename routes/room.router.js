@@ -12,7 +12,7 @@ router.get('/', roomController.getRooms);
 // -- Edit Rooms  (super admin)
 // router.patch('/edit', tokenAuth.verifyAndDecode, auth.checkSuperAdminAccess, couponController.createCoupon);
 // -- Edit Room Quantity
-router.patch('/editQuantity', tokenAuth.verifyAndDecode, auth.checkAdminAccess, roomController.editQuantity);
+// router.patch('/editQuantity', tokenAuth.verifyAndDecode, auth.checkAdminAccess, roomController.editQuantity);
 // -- Delete Room (super admin)
 // router.patch('/delete/:id', tokenAuth.verifyAndDecode, auth.checkSuperAdminAccess, couponController.deleteCoupon);
 

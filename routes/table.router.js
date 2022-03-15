@@ -12,9 +12,9 @@ router.get('/', tableController.getTables);
 // -- Edit Rooms  (super admin)
 // router.patch('/edit', tokenAuth.verifyAndDecode, auth.checkSuperAdminAccess, couponController.createCoupon);
 // -- Edit Table Size
-router.patch('/editSize', tokenAuth.verifyAndDecode, auth.checkAdminAccess, tableController.editSize);
+// router.patch('/editSize', tokenAuth.verifyAndDecode, auth.checkAdminAccess, tableController.editSize);
 // -- Edit Note
-router.patch('/editNote', tokenAuth.verifyAndDecode, auth.checkAdminAccess, tableController.editNote);
+// router.patch('/editNote', tokenAuth.verifyAndDecode, auth.checkAdminAccess, tableController.editNote);
 // -- Delete Room (super admin)
 // router.patch('/delete/:id', tokenAuth.verifyAndDecode, auth.checkSuperAdminAccess, couponController.deleteCoupon);
 
