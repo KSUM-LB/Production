@@ -9,6 +9,7 @@ const router = express.Router();
 router.post('/create', tokenAuth.verifyAndDecode, bookingController.createBooking);
 // -- Get Single Booking
 router.get('/', tokenAuth.verifyAndDecode, bookingController.getBooking);
+router.get('/:userId', bookingController.getBookingFromQR);
 // -- Get Single Booking
 // router.get('/', tokenAuth.verifyAndDecode, roomController.getRooms);
 
