@@ -1,5 +1,6 @@
 require("dotenv").config();
 const express = require("express");
+const cors = require("cors");
 const userRouter = require("./routes/user.router");
 const couponRouter = require("./routes/coupon.router");
 const roomRouter = require("./routes/room.router");
@@ -11,7 +12,14 @@ const app = express();
 
 // --- Middlewares
 app.use(express.json());
-// app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({ extended: false }));
+app.use(
+    cors({
+        origin: ["http://yallacyprus.com"],
+        methods: ["GET", "POST", "PATCH", "DELETE"],
+        credentials: true
+    })
+);
 
 // -- Route Middleware
 app.use("/user", userRouter);

@@ -164,8 +164,7 @@ function chargeCreditCard(callback, ccinfo, booking) {
 			else {
 				response = null;
 				// console.log('Failed Transaction. ');
-				if(response.getTransactionResponse() != null && response.getTransactionResponse().getErrors() != null){
-				
+				if(response.getTransactionResponse() != null && response.getTransactionResponse().getErrors() != null){				
 					// console.log('Error Code: ' + response.getTransactionResponse().getErrors().getError()[0].getErrorCode());
 					// console.log('Error message: ' + response.getTransactionResponse().getErrors().getError()[0].getErrorText());
 				}
