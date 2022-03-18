@@ -141,7 +141,7 @@ function chargeCreditCard(callback, ccinfo, booking) {
 		
 	var ctrl = new ApiControllers.CreateTransactionController(createRequest.getJSON());
 	//Defaults to sandbox
-	//ctrl.setEnvironment(SDKConstants.endpoint.production);
+	// ctrl.setEnvironment(SDKConstants.endpoint.production);
 
 	ctrl.execute(function(){
 
@@ -161,22 +161,19 @@ function chargeCreditCard(callback, ccinfo, booking) {
 					console.log('Description: ' + response.getTransactionResponse().getMessages().getMessage()[0].getDescription());
 				}
 				else {
-					
 					console.log('Failed Transaction 1.');
 					if(response.getTransactionResponse().getErrors() != null){
 						console.log('Error Code: ' + response.getTransactionResponse().getErrors().getError()[0].getErrorCode());
 						console.log('Error message: ' + response.getTransactionResponse().getErrors().getError()[0].getErrorText());
 					}
-					
+					response = null;
 				}
-				response = null;
 			}
 			else {
-				
 				console.log('Failed Transaction 2. ');
 				if(response.getTransactionResponse() != null && response.getTransactionResponse().getErrors() != null){				
 					console.log('Error Code: ' + response.getTransactionResponse().getErrors().getError()[0].getErrorCode());
-					console.log('Error message: ' + response.getTransactionResponse().getErrors().getError()[0].getErrorText());
+					console.log('Error messagee: ' + response.getTransactionResponse().getErrors().getError()[0].getErrorText());
 				}
 				else {
 					console.log('Error Code: ' + response.getMessages().getMessage()[0].getCode());

@@ -4,16 +4,10 @@ const models = require("../models");
 const QRCode = require("qrcode");
 const { chargeCreditCard } = require("../middlewares/chargeCreditCard");
 const { login } = require("./user.controller");
-const { head } = require("../routes/user.router");
+const { json } = require("express/lib/response");
 
 exports.createBooking = async (req, res) => {
   var headerRes = true;
-  // await models.Bookings.findOne({ where: { userId: req.userData.userId } }).then((result) => {
-  //   if(result != null) {
-  //     headerRes = false;
-  //     return res.status(401).json({message: "user already has a booking"});
-  //   }
-  // });
   // -- Getting booking info
   const inDate = req.body.checkIn.split("-");
   const outDate = req.body.checkOut.split("-");
@@ -60,7 +54,7 @@ exports.createBooking = async (req, res) => {
   } else {
     // -- Creating Transaction
     try {
-      const result = await sequelize.transaction(async (t) => {
+      await sequelize.transaction(async (t) => {
         // -- Inserting booking info
         const bookingDB = await models.Bookings.create(booking, {
           transaction: t,
@@ -89,13 +83,14 @@ exports.createBooking = async (req, res) => {
               error: tableValidation,
             });
           } else {
-            const tableDB = await models.TableBooking.create(table, {
+            models.TableBooking.create(table, {
               transaction: t,
-            });
-            models.Table.increment("booked", {
-              by: table.nbOfPeople,
-              where: { id: table.tableId },
-            }).catch((err) => t.rollback());
+            }).then(
+              models.Table.increment("booked", {
+                by: table.nbOfPeople,
+                where: { id: table.tableId },
+              }).catch((err) => t.rollback())
+            );
           }
         }
         // -- Looping over rooms
@@ -251,26 +246,26 @@ exports.createBooking = async (req, res) => {
                     models.Bookings.update(
                       { payed: false },
                       { where: { id: bookingDB.id } }
-                    ).then(update => console.log(update));
+                    );
                     return res.status(401).json({
                       message: "Payment Failed",
                     });
                   } else {
                     // -- Responding with all data
-                    if (headerRes)
-                      return res
-                        .status(201)
-                        .json({ message: "success", result: result });
+                    if (headerRes) {
+                      headerRes = false;
+                      return res.status(201).json({ message: "success" });
+                    }
                   }
                 };
                 await chargeCreditCard(callback, CCinfoDB, bookingDB);
               } catch (error) {
+                console.log("HEREEEEEEEEEEEEEEEe");
                 headerRes = false;
-                
                 models.Bookings.update(
                   { payed: false },
                   { where: { id: bookingDB.id } }
-                ).then(update => console.log(update));
+                );
                 return res.status(401).json({
                   message: "Payment Failed",
                   error: error,
@@ -278,16 +273,18 @@ exports.createBooking = async (req, res) => {
               }
             } else {
               // -- Responding with all data
-              if (headerRes)
-                return res
-                  .status(201)
-                  .json({ message: "success", result: result });
+              if (headerRes) {
+                headerRes = false;
+                return res.status(201).json({ message: "success" });
+              }
             }
           }
         } else {
           // -- Responding with all data
-          if (headerRes)
-            return res.status(201).json({ message: "success", result: result });
+          if (headerRes) {
+            headerRes = false;
+            return res.status(201).json({ message: "success" });
+          }
         }
       });
     } catch (error) {
@@ -303,18 +300,28 @@ exports.createBooking = async (req, res) => {
 
 // -- Get Booking
 exports.getBooking = (req, res) => {
+  let headerRes = true;
   // -- Get booking info
   models.Bookings.findOne({ where: { userId: req.userData.userId } })
     .then((booking) => {
-      if (booking != null && booking.status && !booking.payed) {
+      if (booking != null && booking.status) {
         let d1 = new Date();
         let d2 = new Date(booking.createdAt);
-        if (d1.getDay() - d2.getDay() >= 2) {
+        if (!booking.payed && d1.getDay() - d2.getDay() >= 2) {
           models.Bookings.update(
             { status: false },
             { where: { id: booking.id } }
-          );
-          res.status(200).json({ message: "Booking expired" });
+          ).then(() => {
+            models.TableBooking.findAll({
+              where: { bookingId: booking.id },
+            }).then((tables) => {
+              console.log(tables);
+            });
+          });
+          if (headerRes) {
+            headerRes = false;
+            res.status(200).json({ message: "Booking expired" });
+          }
         } else {
           // -- Get user data
           models.User.findOne({ where: { id: req.userData.userId } })
@@ -342,105 +349,266 @@ exports.getBooking = (req, res) => {
                           })
                             .then((flightinfo) => {
                               booking["dataValues"]["flightinfo"] = flightinfo;
-                              res
+                              if(headerRes) {
+                                headerRes = false;
+                                res
                                 .status(200)
                                 .json({ message: "success", booking });
+                              }
                             })
-                            .catch((error) =>
-                              res
+                            .catch((error) =>{
+                              if(headerRes){
+                                headerRes = false;
+                                res
                                 .status(500)
                                 .json({ message: "Server Error 1", error })
-                            );
+                              }
+                            });
                         })
-                        .catch((error) =>
-                          res
+                        .catch((error) =>{
+                          if(headerRes) {
+                            headerRes = false;
+                            res
                             .status(500)
                             .json({ message: "Server Error 2", error })
-                        );
+                          }
+                        });
                     })
-                    .catch((error) =>
-                      res.status(500).json({ message: "Server Error 3", error })
-                    );
+                    .catch((error) =>{
+                      if(headerRes){
+                        headerRes = false;
+                        res.status(500).json({ message: "Server Error 3", error })
+                      }
+                    });
                 })
-                .catch((error) =>
-                  res.status(500).json({ message: "Server Error 4", error })
-                );
+                .catch((error) =>{
+                  if(headerRes){
+                    headerRes = false;
+                    res.status(500).json({ message: "Server Error 4", error })
+                  }
+                });
             })
-            .catch((error) =>
-              res.status(500).json({ message: "Server Error 0", error })
-            );
+            .catch((error) =>{
+              if(headerRes) {
+                headerRes = false;
+                res.status(500).json({ message: "Server Error 0", error })
+              }
+            });
         }
       } else if (!booking.status) {
-        res.status(200).json({ message: "Booking expired" });
+        if(headerRes) {
+          headerRes = false;
+          res.status(200).json({ message: "Booking expired" });
+        }
       } else {
-        res.status(200).json({ message: "No booking" });
+        if(headerRes) {
+          headerRes = false;
+          res.status(200).json({ message: "No booking" });
+        }
       }
     })
     .catch((error) => {
-      res.status(500).json({ message: "No booking", error });
+      if(headerRes) {
+        headerRes = false;
+        res.status(500).json({ message: "No booking", error });
+      }
+    });
+};
+
+// -- Create flightinfo
+exports.addFlightInfo = (req, res) => {
+  let headerRes = true;
+  models.Bookings.findOne({
+    where: { userId: req.body.userId, id: req.body.bookingId },
+  })
+    .then((result) => {
+      if (result) {
+        // -- Looping over flight info
+        for (var i = 0; i < req.body.flightinfo.length; i++) {
+          // -- Getting flight info
+          const arrDate = req.body.flightinfo[i].arrivalDate.split("-");
+          const depDate = req.body.flightinfo[i].departureDate.split("-");
+          const flightinfo = {
+            bookingId: req.body.bookingId,
+            arrivalAirline: req.body.flightinfo[i].arrivalAirline,
+            arrivalFNb: req.body.flightinfo[i].arrivalFNb,
+            arrivalDate: new Date(arrDate[0], arrDate[1] - 1, arrDate[2]),
+            departureAirline: req.body.flightinfo[i].departureAirline,
+            departureFNb: req.body.flightinfo[i].departureFNb,
+            departureDate: new Date(depDate[0], depDate[1] - 1, depDate[2]),
+            travellers: req.body.flightinfo[i].travellers,
+          };
+          // -- Validating data passed in request body for flight info
+          const flightinfo_schema = {
+            bookingId: { type: "number", optional: false },
+            arrivalAirline: { type: "string", optional: false },
+            arrivalFNb: { type: "string", optional: false },
+            arrivalDate: { type: "date", optional: false },
+            departureAirline: { type: "string", optional: false },
+            departureFNb: { type: "string", optional: false },
+            departureDate: { type: "date", optional: false },
+            travellers: { type: "number", optional: false },
+          };
+          const vflightInfo = new Validator();
+          const flightinfovalidation = vflightInfo.validate(
+            flightinfo,
+            flightinfo_schema
+          );
+          if (flightinfovalidation != true) {
+            headerRes = false;
+            return res.status(406).json({
+              message: "Error in flight info data",
+              error: flightinfovalidation,
+            });
+          } else {
+            // -- Inserting flightinfo
+            models.FlightInfo.create(flightinfo).then(() => {
+              if (headerRes) {
+                headerRes = false;
+                res.status(200).json({ message: "success" });
+              }
+            });
+          }
+        }
+      } else {
+        if (headerRes) {
+          headerRes = false;
+          res.status(401).json({ message: "Booking doesn't exist" });
+        }
+      }
+    })
+    .catch((error) => {
+      if (headerRes) {
+        return res.status(500).json({
+          message: "Error in creating flight info",
+          error: errors,
+        });
+      }
+    });
+};
+
+// -- Create CC info
+exports.payNow = (req, res) => {
+  let headerRes = true;
+  models.Bookings.findOne({
+    where: { userId: req.body.userId, id: req.body.bookingId, payed: false },
+  })
+    .then((result) => {
+      if (result) {
+        if (req.body.CC) {
+          // -- Getting ccinfo
+          const ccinfo = {
+            bookingId: req.body.bookingId,
+            cardNumber: req.body.ccinfo.cardNumber,
+            expirationDate: req.body.ccinfo.expirationDate,
+            cardCode: req.body.ccinfo.cardCode,
+            cardHolder: req.body.ccinfo.cardHolder,
+          };
+          // -- Validating data passed in request body for ccinfo
+          const ccinfo_schema = {
+            bookingId: { type: "number", optional: false },
+            cardNumber: { type: "string", optional: false },
+            expirationDate: { type: "string", optional: false },
+            cardCode: { type: "number", optional: false },
+            cardHolder: { type: "string", optional: true },
+          };
+          const vCCinfo = new Validator();
+          const ccinfovalidation = vCCinfo.validate(ccinfo, ccinfo_schema);
+          if (ccinfovalidation != true) {
+            headerRes = false;
+            return res.status(406).json({
+              message: "Error in credit card data",
+              error: ccinfovalidation,
+            });
+          } else {
+            // -- Inserting CCinfo
+            models.CCinfo.create(ccinfo).then(() => {
+              if (headerRes) {
+                headerRes = false;
+                res.status(200).json({ message: "success" });
+              }
+            });
+          }
+        } else {
+
+        }
+      } else {
+        if (headerRes) {
+          headerRes = false;
+          res.status(401).json({ message: "Booking doesn't exist" });
+        }
+      }
+    })
+    .catch((error) => {
+      if (headerRes) {
+        return res.status(500).json({
+          message: "Error in creating flight info",
+          error: errors,
+        });
+      }
     });
 };
 
 // -- Get Booking From QR
-exports.getBookingFromQR = (req, res) => {
-  // -- Get booking info
-  models.Bookings.findOne({ where: { userId: req.params.userId } })
-    .then((booking) => {
-      if (booking != null && booking.status) {
-        let d1 = new Date();
-        let d2 = new Date(booking.createdAt);
-        if (d1.getDay() - d2.getDay() >= 2) {
-          models.Bookings.update(
-            { status: false },
-            { where: { id: booking.id } }
-          );
-          res.status(200).json({ message: "Booking expired" });
-        } else {
-          // -- Get room info
-          models.RoomBooking.findAll({ where: { bookingId: booking.id } })
-            .then((rooms) => {
-              booking["dataValues"]["rooms"] = rooms;
-              // -- Get table info
-              models.TableBooking.findAll({ where: { bookingId: booking.id } })
-                .then((tables) => {
-                  booking["dataValues"]["tables"] = tables;
-                  // -- Get traveller info
-                  models.Traveller.findAll({ where: { bookingId: booking.id } })
-                    .then((travellers) => {
-                      booking["dataValues"]["travellers"] = travellers;
-                      // -- Get flight info
-                      models.FlightInfo.findAll({
-                        where: { bookingId: booking.id },
-                      })
-                        .then((flightinfo) => {
-                          booking["dataValues"]["flightinfo"] = flightinfo;
-                          res.status(200).json({ message: "success", booking });
-                        })
-                        .catch((error) =>
-                          res
-                            .status(500)
-                            .json({ message: "Server Error 1", error })
-                        );
-                    })
-                    .catch((error) =>
-                      res.status(500).json({ message: "Server Error 2", error })
-                    );
-                })
-                .catch((error) =>
-                  res.status(500).json({ message: "Server Error 3", error })
-                );
-            })
-            .catch((error) =>
-              res.status(500).json({ message: "Server Error 4", error })
-            );
-        }
-      } else if (!booking.status) {
-        res.status(200).json({ message: "Booking expired" });
-      } else {
-        res.status(200).json({ message: "No booking" });
-      }
-    })
-    .catch((error) => {
-      res.status(500).json({ message: "No booking", error });
-    });
-};
+// exports.getBookingFromQR = (req, res) => {
+//   // -- Get booking info
+//   models.Bookings.findOne({ where: { userId: req.params.userId } })
+//     .then((booking) => {
+//       if (booking != null && booking.status) {
+//         let d1 = new Date();
+//         let d2 = new Date(booking.createdAt);
+//         if (d1.getDay() - d2.getDay() >= 2) {
+//           models.Bookings.update(
+//             { status: false },
+//             { where: { id: booking.id } }
+//           );
+//           res.status(200).json({ message: "Booking expired" });
+//         } else {
+//           // -- Get room info
+//           models.RoomBooking.findAll({ where: { bookingId: booking.id } })
+//             .then((rooms) => {
+//               booking["dataValues"]["rooms"] = rooms;
+//               // -- Get table info
+//               models.TableBooking.findAll({ where: { bookingId: booking.id } })
+//                 .then((tables) => {
+//                   booking["dataValues"]["tables"] = tables;
+//                   // -- Get traveller info
+//                   models.Traveller.findAll({ where: { bookingId: booking.id } })
+//                     .then((travellers) => {
+//                       booking["dataValues"]["travellers"] = travellers;
+//                       // -- Get flight info
+//                       models.FlightInfo.findAll({
+//                         where: { bookingId: booking.id },
+//                       })
+//                         .then((flightinfo) => {
+//                           booking["dataValues"]["flightinfo"] = flightinfo;
+//                           res.status(200).json({ message: "success", booking });
+//                         })
+//                         .catch((error) =>
+//                           res
+//                             .status(500)
+//                             .json({ message: "Server Error 1", error })
+//                         );
+//                     })
+//                     .catch((error) =>
+//                       res.status(500).json({ message: "Server Error 2", error })
+//                     );
+//                 })
+//                 .catch((error) =>
+//                   res.status(500).json({ message: "Server Error 3", error })
+//                 );
+//             })
+//             .catch((error) =>
+//               res.status(500).json({ message: "Server Error 4", error })
+//             );
+//         }
+//       } else if (!booking.status) {
+//         res.status(200).json({ message: "Booking expired" });
+//       } else {
+//         res.status(200).json({ message: "No booking" });
+//       }
+//     })
+//     .catch((error) => {
+//       res.status(500).json({ message: "No booking", error });
+//     });
+// };
