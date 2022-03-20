@@ -9,13 +9,11 @@ const router = express.Router();
 router.post('/create', tokenAuth.verifyAndDecode, auth.checkSuperAdminAccess, tableController.createTable);
 // -- Get Tables
 router.get('/', tableController.getTables);
-// -- Edit Rooms  (super admin)
-// router.patch('/edit', tokenAuth.verifyAndDecode, auth.checkSuperAdminAccess, couponController.createCoupon);
-// -- Edit Table Size
-// router.patch('/editSize', tokenAuth.verifyAndDecode, auth.checkAdminAccess, tableController.editSize);
-// -- Edit Note
-// router.patch('/editNote', tokenAuth.verifyAndDecode, auth.checkAdminAccess, tableController.editNote);
-// -- Delete Room (super admin)
+// -- Edit Table
+router.patch('/editTable', tokenAuth.verifyAndDecode, auth.checkAdminAccess, tableController.editTable);
+// -- Table Sales Report
+router.get('/report', tokenAuth.verifyAndDecode, auth.checkAdminAccess, tableController.tablesReport);
+// -- Delete Table (super admin)
 // router.patch('/delete/:id', tokenAuth.verifyAndDecode, auth.checkSuperAdminAccess, couponController.deleteCoupon);
 
 module.exports = router;

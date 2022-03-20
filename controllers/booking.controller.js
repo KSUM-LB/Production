@@ -6,6 +6,12 @@ const { chargeCreditCard } = require("../middlewares/chargeCreditCard");
 const { login } = require("./user.controller");
 const { json } = require("express/lib/response");
 
+// ToDo: Check table seats when booking
+// ToDo: Delete tables and rooms on expiary
+// ToDo: Pay when adding creadit card info
+// ! create account when customer service is booking for client
+
+
 exports.createBooking = async (req, res) => {
   var headerRes = true;
   // -- Getting booking info
@@ -260,16 +266,17 @@ exports.createBooking = async (req, res) => {
                 };
                 await chargeCreditCard(callback, CCinfoDB, bookingDB);
               } catch (error) {
-                console.log("HEREEEEEEEEEEEEEEEe");
-                headerRes = false;
                 models.Bookings.update(
                   { payed: false },
                   { where: { id: bookingDB.id } }
                 );
-                return res.status(401).json({
-                  message: "Payment Failed",
-                  error: error,
-                });
+                if (headerRes) {
+                  headerRes = false;
+                  return res.status(401).json({
+                    message: "Payment Failed",
+                    error: error,
+                  });
+                }
               }
             } else {
               // -- Responding with all data
@@ -320,7 +327,7 @@ exports.getBooking = (req, res) => {
           });
           if (headerRes) {
             headerRes = false;
-            res.status(200).json({ message: "Booking expired" });
+            return res.status(200).json({ message: "Booking expired" });
           }
         } else {
           // -- Get user data
@@ -349,68 +356,74 @@ exports.getBooking = (req, res) => {
                           })
                             .then((flightinfo) => {
                               booking["dataValues"]["flightinfo"] = flightinfo;
-                              if(headerRes) {
+                              if (headerRes) {
                                 headerRes = false;
-                                res
-                                .status(200)
-                                .json({ message: "success", booking });
+                                return res
+                                  .status(200)
+                                  .json({ message: "success", booking });
                               }
                             })
-                            .catch((error) =>{
-                              if(headerRes){
+                            .catch((error) => {
+                              if (headerRes) {
                                 headerRes = false;
-                                res
-                                .status(500)
-                                .json({ message: "Server Error 1", error })
+                                return res
+                                  .status(500)
+                                  .json({ message: "Server Error 1", error });
                               }
                             });
                         })
-                        .catch((error) =>{
-                          if(headerRes) {
+                        .catch((error) => {
+                          if (headerRes) {
                             headerRes = false;
-                            res
-                            .status(500)
-                            .json({ message: "Server Error 2", error })
+                            return res
+                              .status(500)
+                              .json({ message: "Server Error 2", error });
                           }
                         });
                     })
-                    .catch((error) =>{
-                      if(headerRes){
+                    .catch((error) => {
+                      if (headerRes) {
                         headerRes = false;
-                        res.status(500).json({ message: "Server Error 3", error })
+                        return res
+                          .status(500)
+                          .json({ message: "Server Error 3", error });
                       }
                     });
                 })
-                .catch((error) =>{
-                  if(headerRes){
+                .catch((error) => {
+                  if (headerRes) {
                     headerRes = false;
-                    res.status(500).json({ message: "Server Error 4", error })
+                    return res
+                      .status(500)
+                      .json({ message: "Server Error 4", error });
                   }
                 });
             })
-            .catch((error) =>{
-              if(headerRes) {
+            .catch((error) => {
+              if (headerRes) {
                 headerRes = false;
-                res.status(500).json({ message: "Server Error 0", error })
+                return res
+                  .status(500)
+                  .json({ message: "Server Error 0", error });
               }
             });
         }
       } else if (!booking.status) {
-        if(headerRes) {
+        if (headerRes) {
           headerRes = false;
-          res.status(200).json({ message: "Booking expired" });
+          return res.status(200).json({ message: "Booking expired" });
         }
       } else {
-        if(headerRes) {
+        if (headerRes) {
           headerRes = false;
-          res.status(200).json({ message: "No booking" });
+          return res.status(200).json({ message: "No booking" });
         }
       }
     })
     .catch((error) => {
-      if(headerRes) {
+      if (headerRes) {
         headerRes = false;
-        res.status(500).json({ message: "No booking", error });
+        return res.status(500).json({ message: "No booking", error });
       }
     });
 };
@@ -465,7 +478,7 @@ exports.addFlightInfo = (req, res) => {
             models.FlightInfo.create(flightinfo).then(() => {
               if (headerRes) {
                 headerRes = false;
-                res.status(200).json({ message: "success" });
+                return res.status(200).json({ message: "success" });
               }
             });
           }
@@ -473,7 +486,7 @@ exports.addFlightInfo = (req, res) => {
       } else {
         if (headerRes) {
           headerRes = false;
-          res.status(401).json({ message: "Booking doesn't exist" });
+          return res.status(401).json({ message: "Booking doesn't exist" });
         }
       }
     })
@@ -481,7 +494,7 @@ exports.addFlightInfo = (req, res) => {
       if (headerRes) {
         return res.status(500).json({
           message: "Error in creating flight info",
-          error: errors,
+          error: error,
         });
       }
     });
@@ -493,17 +506,17 @@ exports.payNow = (req, res) => {
   models.Bookings.findOne({
     where: { userId: req.body.userId, id: req.body.bookingId, payed: false },
   })
-    .then((result) => {
-      if (result) {
+    .then((booking) => {
+      if (booking) {
+        // -- Getting ccinfo
+        const ccinfo = {
+          bookingId: req.body.bookingId,
+          cardNumber: req.body.ccinfo.cardNumber,
+          expirationDate: req.body.ccinfo.expirationDate,
+          cardCode: req.body.ccinfo.cardCode,
+          cardHolder: req.body.ccinfo.cardHolder,
+        };
         if (req.body.CC) {
-          // -- Getting ccinfo
-          const ccinfo = {
-            bookingId: req.body.bookingId,
-            cardNumber: req.body.ccinfo.cardNumber,
-            expirationDate: req.body.ccinfo.expirationDate,
-            cardCode: req.body.ccinfo.cardCode,
-            cardHolder: req.body.ccinfo.cardHolder,
-          };
           // -- Validating data passed in request body for ccinfo
           const ccinfo_schema = {
             bookingId: { type: "number", optional: false },
@@ -514,28 +527,53 @@ exports.payNow = (req, res) => {
           };
           const vCCinfo = new Validator();
           const ccinfovalidation = vCCinfo.validate(ccinfo, ccinfo_schema);
-          if (ccinfovalidation != true) {
-            headerRes = false;
-            return res.status(406).json({
-              message: "Error in credit card data",
-              error: ccinfovalidation,
-            });
-          } else {
-            // -- Inserting CCinfo
-            models.CCinfo.create(ccinfo).then(() => {
-              if (headerRes) {
-                headerRes = false;
-                res.status(200).json({ message: "success" });
-              }
-            });
-          }
+          // if (ccinfovalidation != true) {
+          //   if (headerRes) {
+          //     headerRes = false;
+          //     return res.status(406).json({
+          //       message: "Error in credit card data",
+          //       error: ccinfovalidation,
+          //     });
+          //   }
+          // } else {
+          //   // -- Inserting CCinfo
+          //   models.CCinfo.create(ccinfo)
+          //     .then(() => {
+          //       if (headerRes) {
+          //         headerRes = false;
+          //         return res.status(200).json({ message: "success" });
+          //       }
+          //     })
+          //     .then(() => {
+          //       models.Bookings.update(
+          //         { CC: true },
+          //         { where: { userId: req.body.userId, id: req.body.bookingId } }
+          //       );
+          //     });
+          // }
         } else {
-
+          // const callback = (response) => {
+          //   if (response == null) {
+          //     if (headerRes) {
+          //       headerRes = false;
+          //       return res.status(401).json({
+          //         message: "Payment Failed",
+          //       });
+          //     }
+          //   } else {
+          //     // -- Responding with all data
+          //     if (headerRes) {
+          //       headerRes = false;
+          //       return res.status(201).json({ message: "success" });
+          //     }
+          //   }
+          // };
+          // chargeCreditCard(callback, CCinfoDB, bookingDB);
         }
       } else {
         if (headerRes) {
           headerRes = false;
-          res.status(401).json({ message: "Booking doesn't exist" });
+          return res.status(401).json({ message: "Booking doesn't exist" });
         }
       }
     })

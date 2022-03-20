@@ -9,10 +9,12 @@ const router = express.Router();
 router.post('/create', tokenAuth.verifyAndDecode, auth.checkSuperAdminAccess, roomController.createRoom);
 // -- Get Rooms
 router.get('/', roomController.getRooms);
+// -- Edit Room Quantity
+router.patch('/editQuantity', tokenAuth.verifyAndDecode, auth.checkAdminAccess, roomController.editQuantity);
+// -- Room sales report
+router.get('/report', tokenAuth.verifyAndDecode, auth.checkAdminAccess, roomController.roomsReport);
 // -- Edit Rooms  (super admin)
 // router.patch('/edit', tokenAuth.verifyAndDecode, auth.checkSuperAdminAccess, couponController.createCoupon);
-// -- Edit Room Quantity
-// router.patch('/editQuantity', tokenAuth.verifyAndDecode, auth.checkAdminAccess, roomController.editQuantity);
 // -- Delete Room (super admin)
 // router.patch('/delete/:id', tokenAuth.verifyAndDecode, auth.checkSuperAdminAccess, couponController.deleteCoupon);
 
