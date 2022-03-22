@@ -13,7 +13,7 @@ router.post('/create/addFlightInfo', tokenAuth.verifyAndDecode, bookingControlle
 // -- Get Single Booking
 router.get('/', tokenAuth.verifyAndDecode, bookingController.getBooking);
 // router.get('/:userId', bookingController.getBookingFromQR);
-// -- Get Single Booking
-// router.get('/', tokenAuth.verifyAndDecode, roomController.getRooms);
+// -- Get All Bookings
+router.get('/all', tokenAuth.verifyAndDecode, auth.checkAdminAccess, bookingController.getBookings);
 
 module.exports = router;

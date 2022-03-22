@@ -501,6 +501,24 @@ exports.addFlightInfo = (req, res) => {
     });
 };
 
+
+// -- Get All Bookings
+exports.getBookings = (req, res) => {
+  let headerRes = true;
+  models.Bookings.findAll({where: {status: true}}).then((bookings) => {
+    if(headerRes){
+      headerRes = false;
+      res.status(200).json({message: "success", bookings: bookings});
+    }
+  }).catch((err) => {
+    if(headerRes){
+      headerRes = false
+      res.status(500).json({message: "server error"});
+    }
+  })
+}
+
+
 // -- Create CC info
 exports.payNow = (req, res) => {
   let headerRes = true;
