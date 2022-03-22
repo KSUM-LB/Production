@@ -66,9 +66,9 @@ exports.editTable = (req, res) => {
   models.Table.findOne({ where: { id: req.body.tableId } })
     .then((table) => {
       if (table) {
-        if (req.body.booked >= table.booked && req.body.booked <= table.size) {
+        if (req.body.size >= table.booked) {
           models.Table.update(
-            { note: req.body.note, booked: req.body.booked },
+            { note: req.body.note, size: req.body.size },
             { where: { id: req.body.tableId } }
           )
             .then((result) => {
@@ -98,7 +98,7 @@ exports.editTable = (req, res) => {
         } else {
           if (headerRes) {
             headerRes = false;
-            return res.status(401).json({ message: "Unaccepted booked value" });
+            return res.status(401).json({ message: "Unaccepted size value" });
           }
         }
       } else {

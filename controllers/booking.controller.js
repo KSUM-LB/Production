@@ -12,6 +12,7 @@ const { json } = require("express/lib/response");
 // ! create account when customer service is booking for client
 
 
+// -- Create booking
 exports.createBooking = async (req, res) => {
   var headerRes = true;
   // -- Getting booking info

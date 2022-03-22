@@ -63,7 +63,10 @@ exports.signup = (req, res) => {
                   // -- Add new user to database
                   models.User.create(user)
                     .then((result) => {
-                      models.Referal.create({ referal: req.body.referal })
+                      models.Referal.increment("count", {
+                        by: 1,
+                        where: { id: req.body.referalId },
+                      })
                         .then(() => {
                           if (headerRes) {
                             headerRes = false;

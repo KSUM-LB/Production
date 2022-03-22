@@ -8,8 +8,11 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      referal: {
+      referalName: {
         type: Sequelize.STRING
+      },
+      count: {
+        type: Sequelize.INTEGER
       },
       createdAt: {
         allowNull: false,
