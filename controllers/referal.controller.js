@@ -2,7 +2,7 @@ const models = require("./../models");
 
 // -- Create Referal
 exports.createReferal = (req, res) => {
-  models.Referal.create({ referalName: req.body.referal })
+  models.Referal.create({ referalName: req.body.referal, count: 0 })
     .then((referal) => {
       res.status(200).json({ message: "success", referal: referal });
     })

@@ -6,6 +6,7 @@ const models = require("./../models");
 // -- Signup
 exports.signup = (req, res) => {
   let headerRes = true;
+  let roleId = 1;
   // -- Check if email is already used
   models.User.findOne({ where: { email: req.body.email } })
     .then((result) => {
@@ -15,13 +16,28 @@ exports.signup = (req, res) => {
           res.status(400).json({ message: "Email already exists" });
         }
       } else {
+        try {
+          const jwtToken = req.headers.authorization.split(" ")[1];
+          const decodedToken = jwt.verify(jwtToken, process.env.JWT_KEY);
+          models.Token.findOne({ where: { token: jwtToken } }).then(
+            (result) => {
+              if (result != null) {
+                if (decodedToken.role == 3 || decodedToken.role == 4) {
+                  roleId = 2;
+                }
+              }
+            }
+          );
+        } catch (e) {
+          roleId = 1;
+        }
         // -- Hash password using bcryptjs
         bcryptjs.genSalt(10, (err, salt) => {
           if (err) {
             if (headerRes) {
               headerRes = false;
               res.status(500).json({
-                message: "Server Error",
+                message: "Server Error 1",
                 error: err,
               });
             }
@@ -31,7 +47,7 @@ exports.signup = (req, res) => {
                 if (headerRes) {
                   headerRes = false;
                   res.status(500).json({
-                    message: "Server Error",
+                    message: "Server Error 2",
                     error: err,
                   });
                 }
@@ -41,6 +57,7 @@ exports.signup = (req, res) => {
                   email: req.body.email,
                   password: hash,
                   phoneNb: req.body.phoneNb,
+                  roleId: roleId,
                 };
                 // -- Validating data passed in request body
                 const user_schema = {
@@ -80,7 +97,7 @@ exports.signup = (req, res) => {
                           if (headerRes) {
                             headerRes = false;
                             res.status(500).json({
-                              message: "Server Error",
+                              message: "Server Error 3",
                               error: err,
                             });
                           }
