@@ -1,5 +1,6 @@
 const express = require('express');
 const userController = require('../controllers/user.controller');
+const auth = require('./../middlewares/authorization');
 const tokenAuth = require('./../middlewares/tokenVerify');
 
 const router = express.Router();
@@ -12,6 +13,10 @@ router.post('/login', userController.login);
 router.patch('/changePassword', tokenAuth.verifyAndDecode, userController.changePassword);
 // -- Logout
 router.delete('/logout', tokenAuth.verifyAndDecode, userController.logout);
+// -- Delete Account
+router.patch('/delete/:id', tokenAuth.verifyAndDecode, auth.checkAdminAccess, userController.deleteUser);
+// -- Get Users
+router.patch('/getSubAccounts', tokenAuth.verifyAndDecode, auth.checkAdminAccess, userController.getUsers);
 
 // -- GetUserInfo
 // router.get('/getUserInfo', tokenAuth.verifyAndDecode, userController.getUserInfo);

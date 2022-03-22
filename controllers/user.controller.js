@@ -151,7 +151,7 @@ exports.login = (req, res) => {
               });
             }
           }
-          if (result) {
+          if (result && user.status != "deleted") {
             // -- Delete any previous token
             models.Token.destroy({ where: { userId: user.id } })
               .then((result) => {
@@ -334,4 +334,22 @@ exports.logout = (req, res) => {
         });
       }
     });
+};
+
+// -- Delete User
+exports.deleteUser = (req, res) => {
+  models
+    .update({ status: "deleted" }, { where: { id: req.params.id } })
+    .then(res.status(200).json({ message: "success" }))
+    .catch(res.status(500).json({ message: "server error" }));
+};
+
+// -- Get Sub Users
+exports.getUsers = (req, res) => {
+  models
+    .findAll({ where: { roleId: 2, status: "pending" } })
+    .then((accounts) =>
+      res.status(200).json({ message: "success", accounts: accounts })
+    )
+    .catch(res.status(500).json({ message: "server error" }));
 };
