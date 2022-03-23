@@ -16,7 +16,7 @@ router.delete('/logout', tokenAuth.verifyAndDecode, userController.logout);
 // -- Delete Account
 router.patch('/delete/:id', tokenAuth.verifyAndDecode, auth.checkAdminAccess, userController.deleteUser);
 // -- Get Users
-router.patch('/getSubAccounts', tokenAuth.verifyAndDecode, auth.checkAdminAccess, userController.getUsers);
+router.get('/getSubAccounts', tokenAuth.verifyAndDecode, auth.checkAdminAccess, userController.getUsers);
 
 // -- GetUserInfo
 // router.get('/getUserInfo', tokenAuth.verifyAndDecode, userController.getUserInfo);

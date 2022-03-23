@@ -80,28 +80,41 @@ exports.signup = (req, res) => {
                   // -- Add new user to database
                   models.User.create(user)
                     .then((result) => {
-                      models.Referal.increment("count", {
-                        by: 1,
-                        where: { id: req.body.referalId },
-                      })
-                        .then(() => {
-                          if (headerRes) {
-                            headerRes = false;
-                            res.status(201).json({
-                              message: "User created successfully",
-                              user: result,
-                            });
-                          }
+                      if (
+                        req.body.referalId != null &&
+                        req.body.referalId != undefined
+                      ) {
+                        models.Referal.increment("count", {
+                          by: 1,
+                          where: { id: req.body.referalId },
                         })
-                        .catch((err) => {
-                          if (headerRes) {
-                            headerRes = false;
-                            res.status(500).json({
-                              message: "Server Error 3",
-                              error: err,
-                            });
-                          }
-                        });
+                          .then(() => {
+                            if (headerRes) {
+                              headerRes = false;
+                              res.status(201).json({
+                                message: "User created successfully",
+                                user: result,
+                              });
+                            }
+                          })
+                          .catch((err) => {
+                            if (headerRes) {
+                              headerRes = false;
+                              res.status(401).json({
+                                message: "Incorrect referal ID",
+                                error: err,
+                              });
+                            }
+                          });
+                      } else {
+                        if (headerRes) {
+                          headerRes = false;
+                          res.status(201).json({
+                            message: "User created successfully",
+                            user: result,
+                          });
+                        }
+                      }
                     })
                     .catch((err) => {
                       if (headerRes) {
