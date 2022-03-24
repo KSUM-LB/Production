@@ -7,6 +7,7 @@ const roomRouter = require("./routes/room.router");
 const tableRouter = require("./routes/table.router");
 const bookingRouter = require("./routes/booking.router");
 const referalRouter = require("./routes/referal.router");
+const flightInfoEmailRouter = require("./routes/flightinfo.router");
 
 // -- Initialize express app
 const app = express();
@@ -29,6 +30,7 @@ app.use("/room", roomRouter);
 app.use("/table", tableRouter);
 app.use("/booking", bookingRouter);
 app.use("/referal", referalRouter);
+app.use("/flightInfoEmail", flightInfoEmailRouter);
 
 // --- Default route
 app.get("/", (req, res) => {
