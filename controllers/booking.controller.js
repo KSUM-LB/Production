@@ -431,7 +431,7 @@ exports.getBooking = (req, res) => {
 exports.getBookingAdmin = (req, res) => {
   let headerRes = true;
   // -- Get booking info
-  models.Bookings.findOne({ where: { userId: req.body.userId, id: req.body.bookingId } })
+  models.Bookings.findOne({ where: { userId: req.params.userId, id: req.params.bookingId } })
     .then((booking) => {
       if (booking != null && booking.status) {
         let d1 = new Date();
