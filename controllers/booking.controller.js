@@ -429,6 +429,130 @@ exports.getBooking = (req, res) => {
     });
 };
 
+// -- Get Booking Admin
+exports.getBookingAdmin = (req, res) => {
+  let headerRes = true;
+  // -- Get booking info
+  models.Bookings.findOne({ where: { userId: req.body.userId, id: req.body.bookingId } })
+    .then((booking) => {
+      if (booking != null && booking.status) {
+        let d1 = new Date();
+        let d2 = new Date(booking.createdAt);
+        if (!booking.payed && d1.getDay() - d2.getDay() >= 2) {
+          models.Bookings.update(
+            { status: false },
+            { where: { id: booking.id } }
+          ).then(() => {
+            models.TableBooking.findAll({
+              where: { bookingId: booking.id },
+            }).then((tables) => {
+              console.log(tables);
+            });
+          });
+          if (headerRes) {
+            headerRes = false;
+            return res.status(200).json({ message: "Booking expired" });
+          }
+        } else {
+          // -- Get user data
+          models.User.findOne({ where: { id: req.userData.userId } })
+            .then((user) => {
+              booking["dataValues"]["user"] = user;
+              // -- Get room info
+              models.RoomBooking.findAll({ where: { bookingId: booking.id } })
+                .then((rooms) => {
+                  booking["dataValues"]["rooms"] = rooms;
+                  // -- Get table info
+                  models.TableBooking.findAll({
+                    where: { bookingId: booking.id },
+                  })
+                    .then((tables) => {
+                      booking["dataValues"]["tables"] = tables;
+                      // -- Get traveller info
+                      models.Traveller.findAll({
+                        where: { bookingId: booking.id },
+                      })
+                        .then((travellers) => {
+                          booking["dataValues"]["travellers"] = travellers;
+                          // -- Get flight info
+                          models.FlightInfo.findAll({
+                            where: { bookingId: booking.id },
+                          })
+                            .then((flightinfo) => {
+                              booking["dataValues"]["flightinfo"] = flightinfo;
+                              if (headerRes) {
+                                headerRes = false;
+                                return res
+                                  .status(200)
+                                  .json({ message: "success", booking });
+                              }
+                            })
+                            .catch((error) => {
+                              if (headerRes) {
+                                headerRes = false;
+                                return res
+                                  .status(500)
+                                  .json({ message: "Server Error 1", error });
+                              }
+                            });
+                        })
+                        .catch((error) => {
+                          if (headerRes) {
+                            headerRes = false;
+                            return res
+                              .status(500)
+                              .json({ message: "Server Error 2", error });
+                          }
+                        });
+                    })
+                    .catch((error) => {
+                      if (headerRes) {
+                        headerRes = false;
+                        return res
+                          .status(500)
+                          .json({ message: "Server Error 3", error });
+                      }
+                    });
+                })
+                .catch((error) => {
+                  if (headerRes) {
+                    headerRes = false;
+                    return res
+                      .status(500)
+                      .json({ message: "Server Error 4", error });
+                  }
+                });
+            })
+            .catch((error) => {
+              if (headerRes) {
+                headerRes = false;
+                return res
+                  .status(500)
+                  .json({ message: "Server Error 0", error });
+              }
+            });
+        }
+      } else if (!booking.status) {
+        if (headerRes) {
+          headerRes = false;
+          return res.status(200).json({ message: "Booking expired" });
+        }
+      } else {
+        if (headerRes) {
+          headerRes = false;
+          return res.status(200).json({ message: "No booking" });
+        }
+      }
+    })
+    .catch((error) => {
+      if (headerRes) {
+        headerRes = false;
+        return res.status(500).json({ message: "No booking", error });
+      }
+    });
+};
+
+
 // -- Create flightinfo
 exports.addFlightInfo = (req, res) => {
   let headerRes = true;

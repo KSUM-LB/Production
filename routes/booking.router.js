@@ -12,6 +12,7 @@ router.post('/create/addFlightInfo', tokenAuth.verifyAndDecode, bookingControlle
 // router.post('/create/payNow', tokenAuth.verifyAndDecode, bookingController.payNow);
 // -- Get Single Booking
 router.get('/', tokenAuth.verifyAndDecode, bookingController.getBooking);
+router.get('/getBooking', tokenAuth.verifyAndDecode, auth.checkAdminAccess, bookingController.getBookingAdmin);
 // router.get('/:userId', bookingController.getBookingFromQR);
 // -- Get All Bookings
 router.get('/all', tokenAuth.verifyAndDecode, auth.checkAdminAccess, bookingController.getBookings);
