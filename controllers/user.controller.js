@@ -359,10 +359,25 @@ exports.deleteUser = (req, res) => {
 
 // -- Get Sub Users
 exports.getUsers = (req, res) => {
-  models
-    .findAll({ where: { roleId: 2, status: "pending" } })
-    .then((accounts) =>
-      res.status(200).json({ message: "success", accounts: accounts })
-    )
-    .catch(res.status(500).json({ message: "server error" }));
+  let headerRes = true;
+  models.User.findAll({ where: { roleId: 2, status: "pending" } })
+    .then((accounts) => {
+      if (accounts) {
+        if (headerRes) {
+          headerRes = false;
+          res.status(200).json({ message: "success", accounts: accounts });
+        }
+      } else {
+        if (headerRes) {
+          headerRes = false;
+          res.status(401).json({ message: "no users" });
+        }
+      }
+    })
+    .catch((err) => {
+      if (headerRes) {
+        headerRes = false;
+        res.status(500).json({ message: "server error", error: err });
+      }
+    });
 };

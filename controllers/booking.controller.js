@@ -3,8 +3,6 @@ const { sequelize } = require("../models");
 const models = require("../models");
 const QRCode = require("qrcode");
 const { chargeCreditCard } = require("../middlewares/chargeCreditCard");
-const { login } = require("./user.controller");
-const { json } = require("express/lib/response");
 
 // ToDo: Check table seats when booking
 // ToDo: Delete tables and rooms on expiary
