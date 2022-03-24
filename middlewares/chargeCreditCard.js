@@ -14,6 +14,7 @@ function chargeCreditCard(callback, ccinfo, booking) {
 	var newExpirationDate = ccinfo.expirationDate.replace(/-/g, "");
 	var newCardCode = String(ccinfo.cardCode);
 	console.log("------------------------------------");
+	console.log(booking.total);
 	console.log(newCardNumber);
 	console.log(newExpirationDate);
 	console.log(newCardCode);

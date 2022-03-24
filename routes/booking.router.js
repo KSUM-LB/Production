@@ -9,7 +9,7 @@ const router = express.Router();
 // -- Create Booking
 router.post('/create', tokenAuth.verifyAndDecode, checkBooking.checkBooking, bookingController.createBooking);
 router.post('/create/addFlightInfo', tokenAuth.verifyAndDecode, bookingController.addFlightInfo);
-// router.post('/create/payNow', tokenAuth.verifyAndDecode, bookingController.payNow);
+router.post('/create/payNow', tokenAuth.verifyAndDecode, bookingController.payNow);
 // -- Get Single Booking
 router.get('/', tokenAuth.verifyAndDecode, bookingController.getBooking);
 router.get('/getBooking/:userId/:bookingId', tokenAuth.verifyAndDecode, auth.checkAdminAccess, bookingController.getBookingAdmin);

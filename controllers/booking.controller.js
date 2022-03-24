@@ -9,7 +9,6 @@ const { chargeCreditCard } = require("../middlewares/chargeCreditCard");
 // ToDo: Pay when adding creadit card info
 // ! create account when customer service is booking for client
 
-
 // -- Create booking
 exports.createBooking = async (req, res) => {
   var headerRes = true;
@@ -431,7 +430,9 @@ exports.getBooking = (req, res) => {
 exports.getBookingAdmin = (req, res) => {
   let headerRes = true;
   // -- Get booking info
-  models.Bookings.findOne({ where: { userId: req.params.userId, id: req.params.bookingId } })
+  models.Bookings.findOne({
+    where: { userId: req.params.userId, id: req.params.bookingId },
+  })
     .then((booking) => {
       if (booking != null && booking.status) {
         let d1 = new Date();
@@ -550,7 +551,6 @@ exports.getBookingAdmin = (req, res) => {
     });
 };
 
-
 // -- Create flightinfo
 exports.addFlightInfo = (req, res) => {
   let headerRes = true;
@@ -623,23 +623,23 @@ exports.addFlightInfo = (req, res) => {
     });
 };
 
-
 // -- Get All Bookings
 exports.getBookings = (req, res) => {
   let headerRes = true;
-  models.Bookings.findAll({where: {status: true}}).then((bookings) => {
-    if(headerRes){
-      headerRes = false;
-      res.status(200).json({message: "success", bookings: bookings});
-    }
-  }).catch((err) => {
-    if(headerRes){
-      headerRes = false
-      res.status(500).json({message: "server error"});
-    }
-  })
-}
-
+  models.Bookings.findAll({ where: { status: true } })
+    .then((bookings) => {
+      if (headerRes) {
+        headerRes = false;
+        res.status(200).json({ message: "success", bookings: bookings });
+      }
+    })
+    .catch((err) => {
+      if (headerRes) {
+        headerRes = false;
+        res.status(500).json({ message: "server error" });
+      }
+    });
+};
 
 // -- Create CC info
 exports.payNow = (req, res) => {
@@ -668,49 +668,52 @@ exports.payNow = (req, res) => {
           };
           const vCCinfo = new Validator();
           const ccinfovalidation = vCCinfo.validate(ccinfo, ccinfo_schema);
-          // if (ccinfovalidation != true) {
-          //   if (headerRes) {
-          //     headerRes = false;
-          //     return res.status(406).json({
-          //       message: "Error in credit card data",
-          //       error: ccinfovalidation,
-          //     });
-          //   }
-          // } else {
-          //   // -- Inserting CCinfo
-          //   models.CCinfo.create(ccinfo)
-          //     .then(() => {
-          //       if (headerRes) {
-          //         headerRes = false;
-          //         return res.status(200).json({ message: "success" });
-          //       }
-          //     })
-          //     .then(() => {
-          //       models.Bookings.update(
-          //         { CC: true },
-          //         { where: { userId: req.body.userId, id: req.body.bookingId } }
-          //       );
-          //     });
-          // }
-        } else {
-          // const callback = (response) => {
-          //   if (response == null) {
-          //     if (headerRes) {
-          //       headerRes = false;
-          //       return res.status(401).json({
-          //         message: "Payment Failed",
-          //       });
-          //     }
-          //   } else {
-          //     // -- Responding with all data
-          //     if (headerRes) {
-          //       headerRes = false;
-          //       return res.status(201).json({ message: "success" });
-          //     }
-          //   }
-          // };
-          // chargeCreditCard(callback, CCinfoDB, bookingDB);
+          if (ccinfovalidation != true) {
+            if (headerRes) {
+              headerRes = false;
+              return res.status(406).json({
+                message: "Error in credit card data",
+                error: ccinfovalidation,
+              });
+            }
+          } else {
+            // -- Inserting CCinfo
+            models.CCinfo.create(ccinfo)
+              .then(() => {
+                if (headerRes) {
+                  headerRes = false;
+                  return res.status(200).json({ message: "success" });
+                }
+              })
+              .then(() => {
+                models.Bookings.update(
+                  { CC: true },
+                  { where: { userId: req.body.userId, id: req.body.bookingId } }
+                );
+              });
+          }
         }
+        const callback = (response) => {
+          if (response == null) {
+            if (headerRes) {
+              headerRes = false;
+              return res.status(401).json({
+                message: "Payment Failed",
+              });
+            }
+          } else {
+            models.Bookings.update(
+              { payed: true },
+              { where: { userId: req.body.userId, id: req.body.bookingId } }
+            );
+            // -- Responding with all data
+            if (headerRes) {
+              headerRes = false;
+              return res.status(201).json({ message: "success" });
+            }
+          }
+        };
+        chargeCreditCard(callback, ccinfo, booking);
       } else {
         if (headerRes) {
           headerRes = false;
@@ -721,7 +724,7 @@ exports.payNow = (req, res) => {
     .catch((error) => {
       if (headerRes) {
         return res.status(500).json({
-          message: "Error in creating flight info",
+          message: "Error in paying",
           error: errors,
         });
       }
