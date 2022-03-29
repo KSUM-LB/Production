@@ -67,17 +67,17 @@ exports.roomsReport = (req, res) => {
   const response = [];
   models.Room.findAll()
     .then((rooms) => {
-      if(rooms != null) {
-        for(var i=0; i<rooms.length; i++){
+      if (rooms != null) {
+        for (var i = 0; i < rooms.length; i++) {
           response.push({
             roomId: rooms[i].id,
             quantity: rooms[i].quantity,
-            booked: rooms[i].booked
+            booked: rooms[i].booked,
           });
         }
-        if(headerRes){
+        if (headerRes) {
           headerRes = false;
-          return res.status(200).json({message: "success", report: response});
+          return res.status(200).json({ message: "success", report: response });
         }
       } else {
         if (headerRes) {
@@ -96,42 +96,23 @@ exports.roomsReport = (req, res) => {
 // -- Edit quantity
 exports.editQuantity = (req, res) => {
   let headerRes = true;
-  for (var i = 0; i < req.body.rooms; i++) {
-    models.Room.findOne({ where: { id: req.body.rooms[i].roomId } })
-      .then((room) => {
-        if (room.booked <= req.body.rooms[i].quantity) {
-          models.Room.update(
-            { quantity: req.body.rooms[i].quantity },
-            { where: { id: req.body.rooms[i].roomId } }
-          ).catch((err) => {
-            if (headerRes) {
-              headerRes = false;
-              return res
-                .status(401)
-                .json({ message: "error in updating room quantity" });
-            }
-          });
-        } else {
-          if (headerRes) {
-            headerRes = false;
-            return res
-              .status(401)
-              .json({ message: "Quantity can't be less than booked" });
-          }
-        }
-      })
-      .catch((err) => {
-        if (headerRes) {
-          headerRes = false;
-          return res.status(401).json({ message: "error in finding room" });
-        }
-      });
+  let i = 0;
+  for (i; i < req.body.rooms.length; i++) {
+    models.Room.update(
+      { quantity: req.body.rooms[i].quantity },
+      { where: { id: req.body.rooms[i].roomId } }
+    ).catch((err) => {
+      if(headerRes) {
+        headerRes = false;
+        return res.status(401).json({message: "error"});
+      }
+    })
   }
-  if(headerRes){
-    return res.status(200).json({message: "All rooms updated successfully"});
+  if (headerRes) {
+    headerRes = false;
+    return res.status(200).json({ message: "All rooms updated successfully" });
   }
 };
-
 
 // exports.editQuantity = (req, res) => {
 //   const value = req.body.action == "increase" ? parseInt("1") : parseInt("-1");

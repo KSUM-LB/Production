@@ -17,8 +17,7 @@ router.delete('/logout', tokenAuth.verifyAndDecode, userController.logout);
 router.patch('/delete/:id', tokenAuth.verifyAndDecode, auth.checkAdminAccess, userController.deleteUser);
 // -- Get Users
 router.get('/getSubAccounts', tokenAuth.verifyAndDecode, auth.checkAdminAccess, userController.getUsers);
-
 // -- GetUserInfo
-// router.get('/getUserInfo', tokenAuth.verifyAndDecode, userController.getUserInfo);
+router.get('/getUserInfo/:id', tokenAuth.verifyAndDecode, auth.checkAdminAccess, userController.getUserInfo);
 
 module.exports = router;

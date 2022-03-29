@@ -628,9 +628,16 @@ exports.getBookings = (req, res) => {
   let headerRes = true;
   models.Bookings.findAll({ where: { status: true } })
     .then((bookings) => {
-      if (headerRes) {
-        headerRes = false;
-        res.status(200).json({ message: "success", bookings: bookings });
+      if (bookings) {
+        if (headerRes) {
+          headerRes = false;
+          res.status(200).json({ message: "success", bookings: bookings });
+        }
+      } else {
+        if (headerRes) {
+          headerRes = false;
+          res.status(401).json({ message: "No Bookings" });
+        }
       }
     })
     .catch((err) => {

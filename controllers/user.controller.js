@@ -351,8 +351,7 @@ exports.logout = (req, res) => {
 
 // -- Delete User
 exports.deleteUser = (req, res) => {
-  models
-    .update({ status: "deleted" }, { where: { id: req.params.id } })
+  models.User.update({ status: "deleted" }, { where: { id: req.params.id } })
     .then(res.status(200).json({ message: "success" }))
     .catch(res.status(500).json({ message: "server error" }));
 };
@@ -381,3 +380,25 @@ exports.getUsers = (req, res) => {
       }
     });
 };
+
+// Ger user info
+exports.getUserInfo = (req, res) => {
+  let headerRes = true;
+  models.User.findOne({where: {id: req.params.id}}).then((user) => {
+    if(user) {
+      if(headerRes){
+        headerRes = false;
+        res.status(200).json({message: "success"})
+      }
+    } else {
+      if(headerRes){
+        headerRes = false;
+        res.status(401).json({message: "no user"})
+      }
+    }
+  }).catch((err) => {
+    if(headerRes) {
+      res.status(500).json({message: 'Error'})
+    }
+  })
+}
