@@ -388,7 +388,7 @@ exports.getUserInfo = (req, res) => {
     if(user) {
       if(headerRes){
         headerRes = false;
-        res.status(200).json({message: "success"})
+        res.status(200).json({message: "success", user: user})
       }
     } else {
       if(headerRes){
