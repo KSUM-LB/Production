@@ -4,11 +4,6 @@ const models = require("../models");
 const QRCode = require("qrcode");
 const { chargeCreditCard } = require("../middlewares/chargeCreditCard");
 
-// ToDo: Check table seats when booking
-// ToDo: Delete tables and rooms on expiary
-// ToDo: Pay when adding creadit card info
-// ! create account when customer service is booking for client
-
 // -- Create booking
 exports.createBooking = async (req, res) => {
   var headerRes = true;
@@ -732,7 +727,7 @@ exports.payNow = (req, res) => {
       if (headerRes) {
         return res.status(500).json({
           message: "Error in paying",
-          error: errors,
+          error: error,
         });
       }
     });

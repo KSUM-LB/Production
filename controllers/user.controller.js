@@ -243,63 +243,75 @@ exports.login = (req, res) => {
 // -- Change password
 exports.changePassword = (req, res) => {
   let headerRes = true;
-  const userEmail = req.userData.email;
-  models.User.findOne({ where: { email: userEmail } })
+  const userId = req.userData.userId;
+  models.User.findOne({ where: { id: userId } })
     .then((user) => {
+      console.log("111111111");
       bcryptjs.compare(req.body.oldPassword, user.password, (err, result) => {
+        console.log("222222222222222");
         if (err) {
           if (headerRes) {
+            console.log("33333333333333333333");
             headerRes = false;
-            res.status(500).json({
+            return res.status(500).json({
               message: "Server Error",
               error: err,
             });
           }
         } else if (result) {
+          console.log("4444444444444444");
           bcryptjs.genSalt(10, (err, salt) => {
-            if (err)
+            console.log("5555555555555555555555555");
+            if (err) {
+              console.log("66666666666666");
               if (headerRes) {
                 headerRes = false;
-                res.status(500).json({
+                return res.status(500).json({
                   message: "Server Error",
                   error: err,
                 });
-              } else
-                bcryptjs.hash(req.body.newPassword, salt, (err, hash) => {
-                  if (err)
-                    if (headerRes) {
-                      headerRes = false;
-                      res.status(500).json({
-                        message: "Server Error",
-                        error: err,
-                      });
-                    } else {
-                      models.User.update(
-                        { password: hash },
-                        { where: { email: req.userData.email } }
-                      )
-                        .then((result) => {
-                          if (headerRes) {
-                            headerRes = false;
-                            res.status(201).json({ message: "Success" });
-                          }
-                        })
-                        .catch((err) => {
-                          if (headerRes) {
-                            headerRes = false;
-                            res.status(500).json({
-                              message: "Server Error",
-                              error: err,
-                            });
-                          }
+              }
+            } else {
+              console.log("77777777777777");
+              bcryptjs.hash(req.body.newPassword, salt, (err, hash) => {
+                if (err) {
+                  if (headerRes) {
+                    headerRes = false;
+                    return res.status(500).json({
+                      message: "Server Error",
+                      error: err,
+                    });
+                  }
+                } else {
+                  models.User.update(
+                    { password: hash },
+                    { where: { id: req.userData.userId } }
+                  )
+                    .then((result) => {
+                      if (headerRes) {
+                        headerRes = false;
+                        return res.status(201).json({ message: "Success" });
+                      }
+                    })
+                    .catch((err) => {
+                      if (headerRes) {
+                        headerRes = false;
+                        return res.status(500).json({
+                          message: "Server Error",
+                          error: err,
                         });
-                    }
-                });
+                      }
+                    });
+                }
+              });
+            }
           });
         } else {
           if (headerRes) {
             headerRes = false;
-            res.status(401).json({ message: "Old password is incorrect" });
+            return res
+              .status(401)
+              .json({ message: "Old password is incorrect" });
           }
         }
       });
@@ -384,21 +396,23 @@ exports.getUsers = (req, res) => {
 // Ger user info
 exports.getUserInfo = (req, res) => {
   let headerRes = true;
-  models.User.findOne({where: {id: req.params.id}}).then((user) => {
-    if(user) {
-      if(headerRes){
-        headerRes = false;
-        res.status(200).json({message: "success", user: user})
+  models.User.findOne({ where: { id: req.params.id } })
+    .then((user) => {
+      if (user) {
+        if (headerRes) {
+          headerRes = false;
+          res.status(200).json({ message: "success", user: user });
+        }
+      } else {
+        if (headerRes) {
+          headerRes = false;
+          res.status(401).json({ message: "no user" });
+        }
       }
-    } else {
-      if(headerRes){
-        headerRes = false;
-        res.status(401).json({message: "no user"})
+    })
+    .catch((err) => {
+      if (headerRes) {
+        res.status(500).json({ message: "Error" });
       }
-    }
-  }).catch((err) => {
-    if(headerRes) {
-      res.status(500).json({message: 'Error'})
-    }
-  })
-}
+    });
+};

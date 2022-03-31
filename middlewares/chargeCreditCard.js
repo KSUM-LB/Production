@@ -19,12 +19,12 @@ function chargeCreditCard(callback, ccinfo, booking) {
 	console.log(newExpirationDate);
 	console.log(newCardCode);
 	console.log("------------------------------------");
-	creditCard.setCardNumber(newCardNumber);
-	creditCard.setExpirationDate(newExpirationDate);
-	creditCard.setCardCode(newCardCode);
-	// creditCard.setCardNumber('4242424242424242');
-	// creditCard.setExpirationDate('0822');
-	// creditCard.setCardCode('999');
+	// creditCard.setCardNumber(newCardNumber);
+	// creditCard.setExpirationDate(newExpirationDate);
+	// creditCard.setCardCode(newCardCode);
+	creditCard.setCardNumber('4242424242424242');
+	creditCard.setExpirationDate('0822');
+	creditCard.setCardCode('999');
 
 	var paymentType = new ApiContracts.PaymentType();
 	paymentType.setCreditCard(creditCard);
