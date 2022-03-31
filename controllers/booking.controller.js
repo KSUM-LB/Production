@@ -15,7 +15,7 @@ exports.createBooking = async (req, res) => {
     status: true,
     CC: req.body.CC,
     payed: req.body.payed,
-    userId: req.userData.userId,
+    userId: req.userData.role == 1 ? req.userData.userId : req.body.userId,
     QrCode: "http://localhost:3001/booking/" + req.userData.userId,
     nbOfTravellers: req.body.nbOfTravellers,
     nbOfRooms: req.body.nbOfRooms,
