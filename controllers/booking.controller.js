@@ -167,9 +167,11 @@ exports.createBooking = async (req, res) => {
           const depDate = req.body.flightinfo[i].departureDate.split("-");
           const flightinfo = {
             bookingId: bookingDB.id,
+            arrivalAirport: req.body.flightinfo[i].arrivalAirport,
             arrivalAirline: req.body.flightinfo[i].arrivalAirline,
             arrivalFNb: req.body.flightinfo[i].arrivalFNb,
             arrivalDate: new Date(arrDate[0], arrDate[1] - 1, arrDate[2]),
+            departureAirport: req.body.flightinfo[i].departureAirport,
             departureAirline: req.body.flightinfo[i].departureAirline,
             departureFNb: req.body.flightinfo[i].departureFNb,
             departureDate: new Date(depDate[0], depDate[1] - 1, depDate[2]),
@@ -178,9 +180,11 @@ exports.createBooking = async (req, res) => {
           // -- Validating data passed in request body for flight info
           const flightinfo_schema = {
             bookingId: { type: "number", optional: false },
+            arrivalAirport: { type: "string", optional: false },
             arrivalAirline: { type: "string", optional: false },
             arrivalFNb: { type: "string", optional: false },
             arrivalDate: { type: "date", optional: false },
+            departureAirport: { type: "string", optional: false },
             departureAirline: { type: "string", optional: false },
             departureFNb: { type: "string", optional: false },
             departureDate: { type: "date", optional: false },
