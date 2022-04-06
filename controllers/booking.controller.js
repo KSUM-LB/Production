@@ -302,6 +302,227 @@ exports.createBooking = async (req, res) => {
   }
 };
 
+exports.updateBooking = async (req, res) => {
+  let headerRes = true;
+  let updateResponse = [];
+  let count = 0;
+  try {
+    // -- Create transaction
+    await sequelize.transaction(async (t) => {
+      // -- Table Bookings Update
+      if (req.body.tableFlag) {
+        count++;
+        for (var i = 0; i < body.tablesOld.length; i++) {
+          // -- Decrease Table Count
+          models.Table.increment("booked", {
+            transaction: t,
+            by: req.body.tablesOld[i].nbOfPeople * -1,
+            where: {
+              id: req.body.tablesOld[i].tableId,
+              bookingId: req.body.bookingId,
+            },
+          })
+            .then((decResponse) => {
+              if (decResponse) {
+                // -- Delete All Bookings
+                models.TableBooking.destroy({
+                  transaction: t,
+                  where: {
+                    tableId: req.body.tablesOld[i].tableId,
+                    bookingId: req.body.bookingId,
+                  },
+                })
+                  .then((desResponse) => {
+                    if (desResponse) {
+                      // -- Create New Table Bookings
+                      const table = {
+                        tableId: req.body.tablesOld[i].tableId,
+                        bookingId: req.body.bookingId,
+                        nbOfPeople: req.body.tablesOld[i].nbOfPeople,
+                      };
+                      models.TableBooking.create(table, {
+                        transaction: t,
+                      })
+                        .then((createResponse) => {
+                          if (createResponse) {
+                            // -- Increase Table Count
+                            models.Table.increment("booked", {
+                              transaction: t,
+                              by: table.nbOfPeople,
+                              where: { id: table.tableId },
+                            })
+                              .then(() => {
+                                updateResponse.push(
+                                  "Table Bookings Updated Successfully"
+                                );
+                              })
+                              .catch((error) => {
+                                t.roleback();
+                                if (headerRes) {
+                                  headerRes = false;
+                                  return res.status(400).json({
+                                    message:
+                                      "Error in increasing table count 2",
+                                    error: error,
+                                  });
+                                }
+                              });
+                          } else {
+                            t.roleback();
+                            if (headerRes) {
+                              headerRes = false;
+                              return res.status(400).json({
+                                message:
+                                  "Error in creating new table bookings 1",
+                              });
+                            }
+                          }
+                        })
+                        .catch((error) => {
+                          t.roleback();
+                          if (headerRes) {
+                            headerRes = false;
+                            return res.status(400).json({
+                              message: "Error in creating new table bookings 2",
+                              error: error,
+                            });
+                          }
+                        });
+                    } else {
+                      t.roleback();
+                      if (headerRes) {
+                        headerRes = false;
+                        return res.status(400).json({
+                          message: "Error in deleting old bookings 2",
+                        });
+                      }
+                    }
+                  })
+                  .catch((error) => {
+                    t.roleback();
+                    if (headerRes) {
+                      headerRes = false;
+                      return res.status(400).json({
+                        message: "Error in deleting old bookings 1",
+                        error: error,
+                      });
+                    }
+                  });
+              } else {
+                t.roleback();
+                if (headerRes) {
+                  headerRes = false;
+                  return res
+                    .status(400)
+                    .json({ message: "Error in decrement 1" });
+                }
+              }
+            })
+            .catch((error) => {
+              t.roleback();
+              if (headerRes) {
+                headerRes = false;
+                return res
+                  .status(400)
+                  .json({ message: "Error in decrement 2", error: error });
+              }
+            });
+        }
+      } else count++;
+
+      // -- Note Update
+      if (req.body.noteFlag) {
+        count++;
+        models.Bookings.update(
+          { note: req.body.note },
+          { transaction: t, where: { id: req.body.bookingId } }
+        )
+          .then(() => {
+            updateResponse.push("Note Updated Successfully");
+          })
+          .catch((error) => {
+            t.roleback();
+            if (headerRes) {
+              headerRes = false;
+              return res
+                .status(400)
+                .json({ message: "Error in note update", error: error });
+            }
+          });
+      } else count++;
+
+      // -- Coupon Id Update
+      if (req.body.couponFlag) {
+        count++;
+        models.booking
+          .update(
+            { couponId: req.body.couponId, total: req.body.total },
+            { transaction: t, where: { id: req.body.bookingId } }
+          )
+          .then(() => {
+            updateResponse.push("CouponID & Total Updated Successfully");
+          })
+          .catch((error) => {
+            t.roleback();
+            if (headerRes) {
+              headerRes = false;
+              return res
+                .status(400)
+                .json({ message: "Error in coupon update", error: error });
+            }
+          });
+      } else count++;
+
+      // -- Manual Total Update
+      if (req.body.manuelFlag) {
+        count++;
+        models.booking
+          .update(
+            { total: req.body.manualTotal },
+            { transaction: t, where: { id: req.body.bookingId } }
+          )
+          .then(() => {
+            updateResponse.push("Manual Total Updated Successfully");
+          })
+          .catch((error) => {
+            t.roleback();
+            if (headerRes) {
+              headerRes = false;
+              return res.status(400).json({
+                message: "Error in manual total update",
+                error: error,
+              });
+            }
+          });
+      } else count++;
+
+      if (count >= 4) {
+        if (headerRes) {
+          headerRes = false;
+          res.status(200).json({ message: "Success" });
+        } else {
+          t.roleback();
+          if (headerRes) {
+            headerRes = false;
+            return res.status(400).json({
+              message: "Error in updating",
+            });
+          }
+        }
+      }
+    });
+  } catch (error) {
+    t.roleback();
+    if (headerRes) {
+      headerRes = false;
+      return res.status(500).json({
+        message: "Server Error",
+        error: error,
+      });
+    }
+  }
+};
+
 // -- Get Booking
 exports.getBooking = (req, res) => {
   let headerRes = true;
