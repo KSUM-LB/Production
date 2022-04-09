@@ -4,23 +4,24 @@ const models = require("../models");
 const QRCode = require("qrcode");
 const { chargeCreditCard } = require("../middlewares/chargeCreditCard");
 const { response } = require("express");
+const emails = require("../helpers/emails");
 
 // -- Create booking
 exports.createBooking = async (req, res) => {
   var headerRes = true;
-  if (req.userData.role == 1) {
-    // -- Check for previous bookings
-    models.Bookings.findOne({ where: { userId: req.userData.userId } }).then(
-      (response) => {
-        if (response) {
-          if (headerRes) {
-            headerRes = false;
-            res.status(400).json({ message: "already has a booking" });
-          }
-        }
-      }
-    );
-  }
+  // if (req.userData.role == 1) {
+  //   // -- Check for previous bookings
+  //   models.Bookings.findOne({ where: { userId: req.userData.userId } }).then(
+  //     (response) => {
+  //       if (response) {
+  //         if (headerRes) {
+  //           headerRes = false;
+  //           res.status(400).json({ message: "already has a booking" });
+  //         }
+  //       }
+  //     }
+  //   );
+  // }
   // -- Getting booking info
   const inDate = req.body.checkIn.split("-");
   const outDate = req.body.checkOut.split("-");
@@ -272,6 +273,9 @@ exports.createBooking = async (req, res) => {
                   } else {
                     // -- Responding with all data
                     if (headerRes) {
+                      // emails.sendBookingConfirmationEmail(
+                      //   "kareem.deaibes412@gmail.com"
+                      // );
                       headerRes = false;
                       return res.status(201).json({ message: "success" });
                     }
@@ -294,6 +298,9 @@ exports.createBooking = async (req, res) => {
             } else {
               // -- Responding with all data
               if (headerRes) {
+                // emails.sendBookingConfirmationEmail(
+                //   "kareem.deaibes412@gmail.com"
+                // );
                 headerRes = false;
                 return res.status(201).json({ message: "success" });
               }
@@ -302,6 +309,9 @@ exports.createBooking = async (req, res) => {
         } else {
           // -- Responding with all data
           if (headerRes) {
+            // emails.sendBookingConfirmationEmail(
+            //   "kareem.deaibes412@gmail.com"
+            // );
             headerRes = false;
             return res.status(201).json({ message: "success" });
           }
@@ -323,6 +333,7 @@ exports.updateBooking = async (req, res) => {
   let updateResponse = [];
   // -- Table Bookings Update
   if (req.body.tableFlag) {
+    console.log(req.body.tablesOld);
     var i;
     for (i = 0; i < req.body.tablesOld.length; i++) {
       // -- Decrease Table Count
@@ -340,33 +351,6 @@ exports.updateBooking = async (req, res) => {
       )
         .then((decResponse) => {
           if (decResponse) {
-            // -- Delete Old Bookings
-            models.TableBooking.destroy({
-              where: {
-                id: req.body.tablesOld[i].tableId,
-                bookingId: req.body.bookingId,
-              },
-            })
-              .then((desResponse) => {
-                if (desResponse) {
-                } else {
-                  if (headerRes) {
-                    headerRes = false;
-                    return res.status(400).json({
-                      message: "Error in deleting old bookings 2",
-                    });
-                  }
-                }
-              })
-              .catch((error) => {
-                if (headerRes) {
-                  headerRes = false;
-                  return res.status(400).json({
-                    message: "Error in deleting old bookings 1",
-                    error: error,
-                  });
-                }
-              });
           } else {
             if (headerRes) {
               headerRes = false;
@@ -380,6 +364,34 @@ exports.updateBooking = async (req, res) => {
             return res
               .status(400)
               .json({ message: "Error in decrement 2", error: error });
+          }
+        });
+      // -- Delete Old Bookings
+      models.TableBooking.destroy({
+        where: {
+          tableId: req.body.tablesOld[i].tableId,
+          bookingId: req.body.bookingId,
+        },
+      })
+        .then((desResponse) => {
+          console.log(desResponse);
+          if (desResponse) {
+          } else {
+            if (headerRes) {
+              headerRes = false;
+              return res.status(400).json({
+                message: "Error in deleting old bookings 2",
+              });
+            }
+          }
+        })
+        .catch((error) => {
+          if (headerRes) {
+            headerRes = false;
+            return res.status(400).json({
+              message: "Error in deleting old bookings 1",
+              error: error,
+            });
           }
         });
     }
