@@ -17,7 +17,15 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(
   cors({
-    origin: ["http://localhost:3000"],
+    origin: [
+      "http://localhost:3000",
+      "https://www.yallacyprus.com",
+      "https://yallacyprus.com",
+      "http://www.yallacyprus.com",
+      "https://yallacyprus.com",
+      "www.yallacyprus.com",
+      "yallacyprus.com",
+    ],
     methods: ["GET", "POST", "PATCH", "DELETE"],
     credentials: true,
   })

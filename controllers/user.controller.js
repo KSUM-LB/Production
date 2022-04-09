@@ -165,15 +165,36 @@ exports.login = (req, res) => {
             }
           }
           if (result && user.status != "deleted") {
-            // -- Delete any previous token
-            models.Token.destroy({ where: { userId: user.id } })
-              .then((result) => {
-                // -- Create new token
-                const jwtToken = jwt.sign(
-                  { email: user.email, userId: user.id, role: user.roleId },
-                  process.env.JWT_KEY,
-                  (err, token) => {
-                    if (err) {
+            const jwtToken = jwt.sign(
+              { email: user.email, userId: user.id, role: user.roleId },
+              process.env.JWT_KEY,
+              (err, token) => {
+                if (err) {
+                  if (headerRes) {
+                    headerRes = false;
+                    res.status(500).json({
+                      message: "Server Error",
+                      error: err,
+                    });
+                  }
+                } else {
+                  // -- Save new token in database
+                  const tokenObject = {
+                    userId: user.id,
+                    token: token,
+                  };
+                  models.Token.create(tokenObject)
+                    .then((result) => {
+                      if (headerRes) {
+                        headerRes = false;
+                        res.status(200).json({
+                          message: "Logged in succesfully",
+                          token: token,
+                          role: user.roleId,
+                        });
+                      }
+                    })
+                    .catch((err) => {
                       if (headerRes) {
                         headerRes = false;
                         res.status(500).json({
@@ -181,45 +202,25 @@ exports.login = (req, res) => {
                           error: err,
                         });
                       }
-                    } else {
-                      // -- Save new token in database
-                      const tokenObject = {
-                        userId: user.id,
-                        token: token,
-                      };
-                      models.Token.create(tokenObject)
-                        .then((result) => {
-                          if (headerRes) {
-                            headerRes = false;
-                            res.status(200).json({
-                              message: "Logged in succesfully",
-                              token: token,
-                              role: user.roleId,
-                            });
-                          }
-                        })
-                        .catch((err) => {
-                          if (headerRes) {
-                            headerRes = false;
-                            res.status(500).json({
-                              message: "Server Error",
-                              error: err,
-                            });
-                          }
-                        });
-                    }
-                  }
-                );
-              })
-              .catch((err) => {
-                if (headerRes) {
-                  headerRes = false;
-                  res.status(500).json({
-                    message: "Server Error",
-                    error: err,
-                  });
+                    });
                 }
-              });
+              }
+            );
+            // // -- Delete any previous token
+            // models.Token.destroy({ where: { userId: user.id } })
+            //   .then((result) => {
+            //     // -- Create new token
+                
+            //   })
+            //   .catch((err) => {
+            //     if (headerRes) {
+            //       headerRes = false;
+            //       res.status(500).json({
+            //         message: "Server Error",
+            //         error: err,
+            //       });
+            //     }
+            //   });
           } else {
             if (headerRes) {
               headerRes = false;
