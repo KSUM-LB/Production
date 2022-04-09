@@ -343,7 +343,7 @@ exports.updateBooking = async (req, res) => {
             // -- Delete Old Bookings
             models.TableBooking.destroy({
               where: {
-                tableId: req.body.tablesOld[i].tableId,
+                id: req.body.tablesOld[i].tableId,
                 bookingId: req.body.bookingId,
               },
             })
@@ -384,6 +384,22 @@ exports.updateBooking = async (req, res) => {
         });
     }
     if (i >= req.body.tablesOld.length) {
+      models.Bookings.update(
+        { nbOfTables: req.body.nbOfTables },
+        {
+          where: {
+            id: req.body.bookingId,
+          },
+        }
+      ).catch((error) => {
+        if (headerRes) {
+          headerRes = false;
+          return res.status(400).json({
+            message: "Error in udpating nb of tables",
+            error: error,
+          });
+        }
+      });
       for (var i = 0; i < req.body.tablesNew.length; i++) {
         // -- Create New Table Bookings
         const table = {
@@ -494,7 +510,9 @@ exports.updateBooking = async (req, res) => {
 
   if (headerRes) {
     headerRes = false;
-    res.status(200).json({ message: "response", updateResponse: updateResponse });
+    res
+      .status(200)
+      .json({ message: "success", updateResponse: updateResponse });
   }
 };
 
