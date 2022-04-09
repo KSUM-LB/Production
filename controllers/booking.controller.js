@@ -533,7 +533,26 @@ exports.getBooking = (req, res) => {
             models.TableBooking.findAll({
               where: { bookingId: booking.id },
             }).then((tables) => {
-              console.log(tables);
+              for (var i = 0; i < tables.length; i++) {
+                models.Table.update(
+                  {
+                    booked: sequelize.literal(`booked - 1`),
+                  },
+                  { where: { id: rooms.roomId } }
+                );
+              }
+            });
+            models.RoomBooking.findAll({
+              where: { bookingId: booking.id },
+            }).then((rooms) => {
+              for (var i = 0; i < rooms.length; i++) {
+                models.Room.update(
+                  {
+                    booked: sequelize.literal(`booked - ${tables.nbOfPeople}`),
+                  },
+                  { where: { id: tables.tableId } }
+                );
+              }
             });
           });
           if (headerRes) {
@@ -647,108 +666,120 @@ exports.getBookingAdmin = (req, res) => {
     where: { userId: req.params.userId, id: req.params.bookingId },
   })
     .then((booking) => {
-      if (booking != null && booking.status) {
-        let d1 = new Date();
-        let d2 = new Date(booking.createdAt);
-        if (!booking.payed && d1.getDay() - d2.getDay() >= 2) {
-          models.Bookings.update(
-            { status: false },
-            { where: { id: booking.id } }
-          ).then(() => {
-            models.TableBooking.findAll({
-              where: { bookingId: booking.id },
-            }).then((tables) => {
-              console.log(tables);
+      if (booking != null) {
+        if (booking.status) {
+          let d1 = new Date();
+          let d2 = new Date(booking.createdAt);
+          if (!booking.payed && d1.getDay() - d2.getDay() >= 2) {
+            booking.status = false;
+            models.Bookings.update(
+              { status: false },
+              { where: { id: booking.id } }
+            ).then(() => {
+              models.TableBooking.findAll({
+                where: { bookingId: booking.id },
+              }).then((tables) => {
+                for (var i = 0; i < tables.length; i++) {
+                  models.Table.update(
+                    {
+                      booked: sequelize.literal(`booked - 1`),
+                    },
+                    { where: { id: rooms.roomId } }
+                  );
+                }
+              });
+              models.RoomBooking.findAll({
+                where: { bookingId: booking.id },
+              }).then((rooms) => {
+                for (var i = 0; i < rooms.length; i++) {
+                  models.Room.update(
+                    {
+                      booked: sequelize.literal(
+                        `booked - ${tables.nbOfPeople}`
+                      ),
+                    },
+                    { where: { id: tables.tableId } }
+                  );
+                }
+              });
             });
-          });
-          if (headerRes) {
-            headerRes = false;
-            return res.status(200).json({ message: "Booking expired" });
           }
-        } else {
-          // -- Get user data
-          models.User.findOne({ where: { id: req.userData.userId } })
-            .then((user) => {
-              booking["dataValues"]["user"] = user;
-              // -- Get room info
-              models.RoomBooking.findAll({ where: { bookingId: booking.id } })
-                .then((rooms) => {
-                  booking["dataValues"]["rooms"] = rooms;
-                  // -- Get table info
-                  models.TableBooking.findAll({
-                    where: { bookingId: booking.id },
-                  })
-                    .then((tables) => {
-                      booking["dataValues"]["tables"] = tables;
-                      // -- Get traveller info
-                      models.Traveller.findAll({
-                        where: { bookingId: booking.id },
-                      })
-                        .then((travellers) => {
-                          booking["dataValues"]["travellers"] = travellers;
-                          // -- Get flight info
-                          models.FlightInfo.findAll({
-                            where: { bookingId: booking.id },
-                          })
-                            .then((flightinfo) => {
-                              booking["dataValues"]["flightinfo"] = flightinfo;
-                              if (headerRes) {
-                                headerRes = false;
-                                return res
-                                  .status(200)
-                                  .json({ message: "success", booking });
-                              }
-                            })
-                            .catch((error) => {
-                              if (headerRes) {
-                                headerRes = false;
-                                return res
-                                  .status(500)
-                                  .json({ message: "Server Error 1", error });
-                              }
-                            });
-                        })
-                        .catch((error) => {
-                          if (headerRes) {
-                            headerRes = false;
-                            return res
-                              .status(500)
-                              .json({ message: "Server Error 2", error });
-                          }
-                        });
-                    })
-                    .catch((error) => {
-                      if (headerRes) {
-                        headerRes = false;
-                        return res
-                          .status(500)
-                          .json({ message: "Server Error 3", error });
-                      }
-                    });
+        }
+        // -- Get user data
+        models.User.findOne({ where: { id: req.userData.userId } })
+          .then((user) => {
+            booking["dataValues"]["user"] = user;
+            // -- Get room info
+            models.RoomBooking.findAll({ where: { bookingId: booking.id } })
+              .then((rooms) => {
+                booking["dataValues"]["rooms"] = rooms;
+                // -- Get table info
+                models.TableBooking.findAll({
+                  where: { bookingId: booking.id },
                 })
-                .catch((error) => {
-                  if (headerRes) {
-                    headerRes = false;
-                    return res
-                      .status(500)
-                      .json({ message: "Server Error 4", error });
-                  }
-                });
-            })
-            .catch((error) => {
-              if (headerRes) {
-                headerRes = false;
-                return res
-                  .status(500)
-                  .json({ message: "Server Error 0", error });
-              }
-            });
-        }
-      } else if (!booking.status) {
-        if (headerRes) {
-          headerRes = false;
-          return res.status(200).json({ message: "Booking expired" });
-        }
+                  .then((tables) => {
+                    booking["dataValues"]["tables"] = tables;
+                    // -- Get traveller info
+                    models.Traveller.findAll({
+                      where: { bookingId: booking.id },
+                    })
+                      .then((travellers) => {
+                        booking["dataValues"]["travellers"] = travellers;
+                        // -- Get flight info
+                        models.FlightInfo.findAll({
+                          where: { bookingId: booking.id },
+                        })
+                          .then((flightinfo) => {
+                            booking["dataValues"]["flightinfo"] = flightinfo;
+                            if (headerRes) {
+                              headerRes = false;
+                              return res
+                                .status(200)
+                                .json({ message: "success", booking });
+                            }
+                          })
+                          .catch((error) => {
+                            if (headerRes) {
+                              headerRes = false;
+                              return res
+                                .status(500)
+                                .json({ message: "Server Error 1", error });
+                            }
+                          });
+                      })
+                      .catch((error) => {
+                        if (headerRes) {
+                          headerRes = false;
+                          return res
+                            .status(500)
+                            .json({ message: "Server Error 2", error });
+                        }
+                      });
+                  })
+                  .catch((error) => {
+                    if (headerRes) {
+                      headerRes = false;
+                      return res
+                        .status(500)
+                        .json({ message: "Server Error 3", error });
+                    }
+                  });
+              })
+              .catch((error) => {
+                if (headerRes) {
+                  headerRes = false;
+                  return res
+                    .status(500)
+                    .json({ message: "Server Error 4", error });
+                }
+              });
+          })
+          .catch((error) => {
+            if (headerRes) {
+              headerRes = false;
+              return res.status(500).json({ message: "Server Error 0", error });
+            }
+          });
       } else {
         if (headerRes) {
           headerRes = false;
@@ -846,6 +877,46 @@ exports.getBookings = (req, res) => {
   models.Bookings.findAll({ where: { status: true } })
     .then((bookings) => {
       if (bookings) {
+        for (var i = 0; i < bookings.length; i++) {
+          if (bookings[i].status) {
+            let d1 = new Date();
+            let d2 = new Date(bookings[i].createdAt);
+            if (!bookings[i].payed && d1.getDay() - d2.getDay() >= 2) {
+              models.Bookings.update(
+                { status: false },
+                { where: { id: bookings[i].id } }
+              ).then(() => {
+                bookings[i].status = false;
+                models.TableBooking.findAll({
+                  where: { bookingId: bookings[i].id },
+                }).then((tables) => {
+                  for (var i = 0; i < tables.length; i++) {
+                    models.Table.update(
+                      {
+                        booked: sequelize.literal(`booked - 1`),
+                      },
+                      { where: { id: rooms.roomId } }
+                    );
+                  }
+                });
+                models.RoomBooking.findAll({
+                  where: { bookingId: bookings[i].id },
+                }).then((rooms) => {
+                  for (var i = 0; i < rooms.length; i++) {
+                    models.Room.update(
+                      {
+                        booked: sequelize.literal(
+                          `booked - ${tables.nbOfPeople}`
+                        ),
+                      },
+                      { where: { id: tables.tableId } }
+                    );
+                  }
+                });
+              });
+            }
+          }
+        }
         if (headerRes) {
           headerRes = false;
           res.status(200).json({ message: "success", bookings: bookings });
@@ -860,7 +931,7 @@ exports.getBookings = (req, res) => {
     .catch((err) => {
       if (headerRes) {
         headerRes = false;
-        res.status(500).json({ message: "server error" });
+        res.status(500).json({ message: "server error", error: err });
       }
     });
 };
