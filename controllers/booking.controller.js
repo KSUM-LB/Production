@@ -321,22 +321,26 @@ exports.createBooking = async (req, res) => {
 exports.updateBooking = async (req, res) => {
   let headerRes = true;
   let updateResponse = [];
-  let count = 0;
   // -- Table Bookings Update
   if (req.body.tableFlag) {
-    count++;
-    for (var i = 0; i < body.tablesOld.length; i++) {
+    var i;
+    for (i = 0; i < req.body.tablesOld.length; i++) {
       // -- Decrease Table Count
-      models.Table.increment("booked", {
-        by: req.body.tablesOld[i].nbOfPeople * -1,
-        where: {
-          id: req.body.tablesOld[i].tableId,
-          bookingId: req.body.bookingId,
+      models.Table.update(
+        {
+          booked: sequelize.literal(
+            `booked - ${req.body.tablesOld[i].nbOfPeople}`
+          ),
         },
-      })
+        {
+          where: {
+            id: req.body.tablesOld[i].tableId,
+          },
+        }
+      )
         .then((decResponse) => {
           if (decResponse) {
-            // -- Delete All Bookings
+            // -- Delete Old Bookings
             models.TableBooking.destroy({
               where: {
                 tableId: req.body.tablesOld[i].tableId,
@@ -345,52 +349,6 @@ exports.updateBooking = async (req, res) => {
             })
               .then((desResponse) => {
                 if (desResponse) {
-                  // -- Create New Table Bookings
-                  const table = {
-                    tableId: req.body.tablesOld[i].tableId,
-                    bookingId: req.body.bookingId,
-                    nbOfPeople: req.body.tablesOld[i].nbOfPeople,
-                  };
-                  models.TableBooking.create(table)
-                    .then((createResponse) => {
-                      if (createResponse) {
-                        // -- Increase Table Count
-                        models.Table.increment("booked", {
-                          by: table.nbOfPeople,
-                          where: { id: table.tableId },
-                        })
-                          .then(() => {
-                            updateResponse.push(
-                              "Table Bookings Updated Successfully"
-                            );
-                          })
-                          .catch((error) => {
-                            if (headerRes) {
-                              headerRes = false;
-                              return res.status(400).json({
-                                message: "Error in increasing table count 2",
-                                error: error,
-                              });
-                            }
-                          });
-                      } else {
-                        if (headerRes) {
-                          headerRes = false;
-                          return res.status(400).json({
-                            message: "Error in creating new table bookings 1",
-                          });
-                        }
-                      }
-                    })
-                    .catch((error) => {
-                      if (headerRes) {
-                        headerRes = false;
-                        return res.status(400).json({
-                          message: "Error in creating new table bookings 2",
-                          error: error,
-                        });
-                      }
-                    });
                 } else {
                   if (headerRes) {
                     headerRes = false;
@@ -425,11 +383,59 @@ exports.updateBooking = async (req, res) => {
           }
         });
     }
-  } else count++;
+    if (i >= req.body.tablesOld.length) {
+      for (var i = 0; i < req.body.tablesNew.length; i++) {
+        // -- Create New Table Bookings
+        const table = {
+          tableId: req.body.tablesNew[i].tableId,
+          bookingId: req.body.bookingId,
+          nbOfPeople: req.body.tablesNew[i].nbOfPeople,
+        };
+        models.TableBooking.create(table)
+          .then((createResponse) => {
+            if (createResponse) {
+              // -- Increase Table Count
+              models.Table.increment("booked", {
+                by: table.nbOfPeople,
+                where: { id: table.tableId },
+              })
+                .then(() => {
+                  console.log("hi");
+                  updateResponse.push("Table Bookings Updated Successfully");
+                })
+                .catch((error) => {
+                  if (headerRes) {
+                    headerRes = false;
+                    return res.status(400).json({
+                      message: "Error in increasing table count 2",
+                      error: error,
+                    });
+                  }
+                });
+            } else {
+              if (headerRes) {
+                headerRes = false;
+                return res.status(400).json({
+                  message: "Error in creating new table bookings 1",
+                });
+              }
+            }
+          })
+          .catch((error) => {
+            if (headerRes) {
+              headerRes = false;
+              return res.status(400).json({
+                message: "Error in creating new table bookings 2",
+                error: error,
+              });
+            }
+          });
+      }
+    }
+  }
 
   // -- Note Update
   if (req.body.noteFlag) {
-    count++;
     models.Bookings.update(
       { adminNote: req.body.note },
       { where: { id: req.body.bookingId } }
@@ -445,11 +451,10 @@ exports.updateBooking = async (req, res) => {
             .json({ message: "Error in note update", error: error });
         }
       });
-  } else count++;
+  }
 
   // -- Coupon Id Update
   if (req.body.couponFlag) {
-    count++;
     models.Bookings.update(
       { couponId: req.body.couponId, total: req.body.total },
       { where: { id: req.body.bookingId } }
@@ -465,11 +470,10 @@ exports.updateBooking = async (req, res) => {
             .json({ message: "Error in coupon update", error: error });
         }
       });
-  } else count++;
+  }
 
   // -- Manual Total Update
   if (req.body.manuelFlag) {
-    count++;
     models.Bookings.update(
       { total: req.body.manualTotal },
       { where: { id: req.body.bookingId } }
@@ -486,13 +490,11 @@ exports.updateBooking = async (req, res) => {
           });
         }
       });
-  } else count++;
+  }
 
   if (headerRes) {
     headerRes = false;
-    res
-      .status(200)
-      .json({ message: "Success", updateResponse: updateResponse });
+    res.status(200).json({ message: "response", updateResponse: updateResponse });
   }
 };
 
