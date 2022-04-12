@@ -4,7 +4,7 @@ const models = require("../models");
 const QRCode = require("qrcode");
 const { chargeCreditCard } = require("../middlewares/chargeCreditCard");
 const emails = require("../helpers/emails");
-const uploadFile = require('./../middlewares/upload');
+const uploadFile = require("./../middlewares/upload");
 const uploadFileMiddleware = require("./../middlewares/upload");
 
 // -- Create booking
@@ -278,6 +278,7 @@ exports.createBooking = async (req, res) => {
                         req.userData.email,
                         bookingDB
                       );
+                      emails.sendReceiptEmail(req.userData.email);
                       headerRes = false;
                       return res.status(201).json({ message: "success1" });
                     }
@@ -312,10 +313,7 @@ exports.createBooking = async (req, res) => {
         } else {
           // -- Responding with all data
           if (headerRes) {
-            emails.sendBookingConfirmationEmail(
-              req.userData.email,
-              bookingDB
-            );
+            emails.sendBookingConfirmationEmail(req.userData.email, bookingDB);
             headerRes = false;
             return res.status(201).json({ message: "success3" });
           }
@@ -1068,6 +1066,7 @@ exports.payNow = (req, res) => {
               { where: { userId: req.body.userId, id: req.body.bookingId } }
             );
             // -- Responding with all data
+            emails.sendReceiptEmail(req.userData.email);
             if (headerRes) {
               headerRes = false;
               return res.status(201).json({ message: "success" });
@@ -1099,6 +1098,7 @@ exports.payCash = (req, res) => {
     { where: { id: req.body.bookingId } }
   )
     .then(() => {
+      emails.sendReceiptEmail(req.body.userEmail);
       res.status(200).json({ message: "success" });
     })
     .catch((error) => {

@@ -12,7 +12,6 @@ const transporter = nodemailer.createTransport({
 });
 
 exports.sendBookingConfirmationEmail = (recipient, booking) => {
-  console.log(recipient);
   let message = {
     from: "info@yallacyprus.com",
     to: recipient,
@@ -34,19 +33,20 @@ exports.sendBookingConfirmationEmail = (recipient, booking) => {
   });
 };
 
-// exports.sendReceiptEmail = (recipient) => {
-//   let message = {
-//     from: "info@yallacyprus.com",
-//     to: recipient,
-//     subject: "Receipt",
-//     html: "<h1>Hello test email</h1>",
-//   };
+exports.sendReceiptEmail = (recipient) => {
+  let message = {
+    from: "info@yallacyprus.com",
+    to: recipient,
+    subject: "Booking Confirmation",
+    html: `<h1>Payement Confirmation</h1>
+  <p>This email is to confirm your payment, Thank you for booking with us.</p>`,
+  };
 
-//   transporter.sendMail(message, function (err, info) {
-//     if (err) {
-//       console.log(err);
-//     } else {
-//       console.log(info);
-//     }
-//   });
-// };
+  transporter.sendMail(message, function (err, info) {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log(info);
+    }
+  });
+};
