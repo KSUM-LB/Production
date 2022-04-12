@@ -13,11 +13,13 @@ router.post(
   checkBooking.checkBooking,
   bookingController.createBooking
 );
+// -- Add Flight Info
 router.post(
   "/create/addFlightInfo",
   tokenAuth.verifyAndDecode,
   bookingController.addFlightInfo
 );
+// -- Pay Now
 router.post(
   "/create/payNow",
   tokenAuth.verifyAndDecode,
@@ -25,13 +27,15 @@ router.post(
 );
 // -- Get Single Booking
 router.get("/", tokenAuth.verifyAndDecode, bookingController.getBooking);
+// -- Get Single Booking Admin
 router.get(
   "/getBooking/:userId/:bookingId",
   tokenAuth.verifyAndDecode,
   auth.checkAdminAccess,
   bookingController.getBookingAdmin
 );
-// router.get('/:userId', bookingController.getBookingFromQR);
+// -- Get From QR
+router.get("/:userId", bookingController.getFromQR);
 // -- Get All Bookings
 router.get(
   "/all",
@@ -53,5 +57,7 @@ router.patch(
   auth.checkAdminAccess,
   bookingController.payCash
 );
+// Send Email
+router.post("/sendReceiptEmail", bookingController.sendReceiptEmail);
 
 module.exports = router;
