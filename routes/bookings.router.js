@@ -6,6 +6,13 @@ const auth = require("../middlewares/authorization");
 
 const router = express.Router();
 
+// -- Get All Bookings
+router.get(
+  "/bookingsAll",
+  tokenAuth.verifyAndDecode,
+  auth.checkAdminAccess,
+  bookingController.getBookingss
+);
 // -- Create Booking
 router.post(
   "/create",
@@ -36,13 +43,6 @@ router.get(
 );
 // -- Get From QR
 router.get("/:userId", bookingController.getFromQR);
-// -- Get All Bookings
-router.get(
-  "/allBookings",
-  tokenAuth.verifyAndDecode,
-  auth.checkAdminAccess,
-  bookingController.getBookingss
-);
 // Update Booking
 router.patch(
   "/update",

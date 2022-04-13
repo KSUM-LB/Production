@@ -336,7 +336,7 @@ exports.updateBooking = async (req, res) => {
   let updateResponse = [];
   // -- Table Bookings Update
   if (req.body.tableFlag) {
-    console.log(req.body.tablesOld);
+    //console.log(req.body.tablesOld);
     var i;
     for (i = 0; i < req.body.tablesOld.length; i++) {
       // -- Decrease Table Count
@@ -377,7 +377,7 @@ exports.updateBooking = async (req, res) => {
         },
       })
         .then((desResponse) => {
-          console.log(desResponse);
+          //console.log(desResponse);
           if (desResponse) {
           } else {
             if (headerRes) {
@@ -431,7 +431,7 @@ exports.updateBooking = async (req, res) => {
                 where: { id: table.tableId },
               })
                 .then(() => {
-                  console.log("hi");
+                  //console.log("hi");
                   updateResponse.push("Table Bookings Updated Successfully");
                 })
                 .catch((error) => {
@@ -928,10 +928,10 @@ exports.addFlightInfo = (req, res) => {
 // -- Get All Bookings
 exports.getBookingss = (req, res) => {
   let headerRes = true;
-  console.log("------------------------------------------------");
+  //console.log("------------------------------------------------");
   models.Bookings.findAll({ where: { status: true } })
     .then((bookings) => {
-      console.log("Bookings: ", bookings);
+      //console.log("Bookings: ", bookings);
       if (bookings) {
         for (var i = 0; i < bookings.length; i++) {
           if (bookings[i].status) {
@@ -942,7 +942,9 @@ exports.getBookingss = (req, res) => {
                 { status: false },
                 { where: { id: bookings[i].id } }
               ).then(() => {
-                bookings[i].status = false;
+                if (bookings[i]) {
+                  bookings[i].status = false;
+                }
                 models.TableBooking.findAll({
                   where: { bookingId: bookings[i].id },
                 }).then((tables) => {
