@@ -46,7 +46,7 @@ app.get("/", (req, res) => {
 });
 
 // --- Listen on port
-const PORT = process.env.PORT || 3001;
+const PORT = process.env.PORT || 30001;
 app.listen(PORT, () =>
   console.log("Server listening successfully on port ", PORT)
 );
