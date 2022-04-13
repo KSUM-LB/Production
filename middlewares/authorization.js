@@ -1,4 +1,5 @@
 exports.checkAdminAccess = (req, res, next) => {
+  console.log("----------------------------------------2");
   const role = req.userData.role;
   if (role == 3 || role == 4) {
     next();
@@ -11,6 +12,7 @@ exports.checkAdminAccess = (req, res, next) => {
 
 
 exports.checkSuperAdminAccess = (req, res, next) => {
+  console.log("----------------------------------------3");
   const role = req.userData.role;
   if (role == 4) {
     next();

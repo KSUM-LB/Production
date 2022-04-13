@@ -38,10 +38,10 @@ router.get(
 router.get("/:userId", bookingController.getFromQR);
 // -- Get All Bookings
 router.get(
-  "/all",
+  "/allBookings",
   tokenAuth.verifyAndDecode,
   auth.checkAdminAccess,
-  bookingController.getBookings
+  bookingController.getBookingss
 );
 // Update Booking
 router.patch(

@@ -926,10 +926,12 @@ exports.addFlightInfo = (req, res) => {
 };
 
 // -- Get All Bookings
-exports.getBookings = (req, res) => {
+exports.getBookingss = (req, res) => {
   let headerRes = true;
+  console.log("------------------------------------------------");
   models.Bookings.findAll({ where: { status: true } })
     .then((bookings) => {
+      console.log("Bookings: ", bookings);
       if (bookings) {
         for (var i = 0; i < bookings.length; i++) {
           if (bookings[i].status) {

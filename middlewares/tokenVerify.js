@@ -3,6 +3,7 @@ const models = require("./../models");
 
 // --- Verify that the token is true
 exports.verifyAndDecode = (req, res, next) => {
+  console.log("------------------------------------1");
   try {
     const jwtToken = req.headers.authorization.split(" ")[1];
     const decodedToken = jwt.verify(jwtToken, process.env.JWT_KEY);

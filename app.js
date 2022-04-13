@@ -5,7 +5,7 @@ const userRouter = require("./routes/user.router");
 const couponRouter = require("./routes/coupon.router");
 const roomRouter = require("./routes/room.router");
 const tableRouter = require("./routes/table.router");
-const bookingRouter = require("./routes/booking.router");
+const bookingsRouter = require("./routes/bookings.router");
 const referalRouter = require("./routes/referal.router");
 const flightInfoEmailRouter = require("./routes/flightinfo.router");
 
@@ -36,7 +36,7 @@ app.use("/user", userRouter);
 app.use("/coupon", couponRouter);
 app.use("/room", roomRouter);
 app.use("/table", tableRouter);
-app.use("/booking", bookingRouter);
+app.use("/bookings", bookingsRouter);
 app.use("/referal", referalRouter);
 app.use("/flightInfoEmail", flightInfoEmailRouter);
 
