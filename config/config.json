@@ -1,22 +1,22 @@
 {
   "development": {
-    "username": "root",
-    "password": null,
-    "database": "yallacyprus",
+    "username": "ksum",
+    "password": "Yasmina2017@",
+    "database": "ksum_yallacyprus",
     "host": "127.0.0.1",
     "dialect": "mysql"
   },
   "test": {
-    "username": "root",
-    "password": null,
-    "database": "database_test",
+    "username": "ksum",
+    "password": "Yasmina2017@",
+    "database": "ksum_yallacyprus",
     "host": "127.0.0.1",
     "dialect": "mysql"
   },
   "production": {
-    "username": "root",
-    "password": null,
-    "database": "database_production",
+    "username": "ksum",
+    "password": "Yasmina2017@",
+    "database": "ksum_yallacyprus",
     "host": "127.0.0.1",
     "dialect": "mysql"
   }
